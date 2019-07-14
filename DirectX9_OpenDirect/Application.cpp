@@ -19,9 +19,9 @@ bool Application::Initialize(wchar_t* title, int width, int height, bool fullScr
 
 	_CreateWindow(title, width, height, fullScreen);
 
-	//if (Renderer::GetInstance()->Initialize(m_hWnd, width, height, fullScreen) == false) return false;
-	//if (Director::GetInstance()->Initialize() == false) return false;
-	////CollisionManager::GetInstance()->Initialize();
+	if (Renderer::GetInstance()->Initialize(m_hWnd, width, height, fullScreen) == false) return false;
+	if (Director::GetInstance()->Initialize() == false) return false;
+	//CollisionManager::GetInstance()->Initialize();
 
 	return true;
 }
@@ -31,8 +31,8 @@ bool Application::Release()
 //#if _DEBUG
 //	Console::Release();
 //#endif
-//	if (Director::GetInstance()->Release() == false) return false;
-//	if (Renderer::GetInstance()->Release() == false) return false;
+	if (Director::GetInstance()->Release() == false) return false;
+	if (Renderer::GetInstance()->Release() == false) return false;
 	return true;
 }
 
@@ -64,15 +64,15 @@ bool Application::Run()
 			float deltaTime = static_cast<float>(m_DeltaTime) / 1000.0f;
 			deltaTime = deltaTime > 1 ? 0 : deltaTime;
 
-			//// Update
-			////Input::GetInstance()->Update();
-			//Director::GetInstance()->Update(deltaTime);
-			////CollisionManager::GetInstance()->Update(deltaTime);
+			// Update
+			//Input::GetInstance()->Update();
+			Director::GetInstance()->Update(deltaTime);
+			//CollisionManager::GetInstance()->Update(deltaTime);
 
-			//// Render
-			//Renderer::GetInstance()->Begin();
-			//Director::GetInstance()->Render();
-			//Renderer::GetInstance()->End();
+			// Render
+			Renderer::GetInstance()->Begin();
+			Director::GetInstance()->Render();
+			Renderer::GetInstance()->End();
 
 
 			m_PrevTime = m_NowTime;
@@ -126,14 +126,12 @@ bool Application::_CreateWindow(wchar_t* title, int width, int height, bool full
 
 	if (fullScreen)
 	{
-		// 전체화면 모드일경우 스타일 수정
 		style = WS_POPUP | WS_EX_TOPMOST;
 	}
 	else
 	{
 		style = WS_POPUP;
 
-		// 윈도우 모드일경우 윈도우 보더를 계산한 크기로 수정함
 		RECT rect;
 		SetRect(&rect, 0, 0, width, height);
 

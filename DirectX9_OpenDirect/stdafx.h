@@ -22,11 +22,11 @@
 #include "TypeDefined.h"
 
 
-//#include "Renderer.h"
-//#include "Object.h"
-//#include "Camera.h"
-//#include "Director.h"
-//#include "Scene.h"
+#include "Renderer.h"
+#include "Object.h"
+#include "Camera.h"
+#include "Director.h"
+#include "Scene.h"
 //#include "Collider.h"
 //#include "Input.h"
 //#include "Texture.h"

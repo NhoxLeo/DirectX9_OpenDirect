@@ -25,7 +25,7 @@ bool Director::Update(float deltaTime)
 	if (m_CurrentScene == nullptr)
 		return false;
 
-	//m_CurrentScene->Update(deltaTime);
+	m_CurrentScene->Update(deltaTime);
 
 	return true;
 }
@@ -34,7 +34,7 @@ bool Director::Render()
 	if (m_CurrentScene == nullptr)
 		return false;
 
-	//m_CurrentScene->Render();
+	m_CurrentScene->Render();
 
 	return true;
 }

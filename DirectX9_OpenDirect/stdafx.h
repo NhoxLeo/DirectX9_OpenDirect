@@ -38,6 +38,11 @@
 #include "Input.h"
 #include "CircleCollider.h"
 #include "BoxCollider.h"
+#include "CollisionManager.h"
+#include "Rigidbody.h"
+#include "PhysicsManager.h"
 //#include "Label.h"
 //#include "AnimationGroup.h"
 //#include "ProgressBar.h"
+
+using namespace std;

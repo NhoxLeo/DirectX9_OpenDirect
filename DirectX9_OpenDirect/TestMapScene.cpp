@@ -6,14 +6,16 @@ TestMapScene::~TestMapScene() {}
 
 bool TestMapScene::Initialize() {
 	Scene::Initialize();
-
 	InitializeUI();
 
 	//m_Map = Map::Create(64, 64);
 	//AddChild(m_Map);
 
 	// 카메라 이동
-	GetCamera()->Translate(-640, 0);
+	GetCamera()->Translate(0, 0);
+
+	//PhysicsManager*a = PhysicsManager::GetInstance();
+
 
 	return true;
 }
@@ -36,11 +38,14 @@ void TestMapScene::InitializeUI() {
 
 	//p_water->AddChild(p_water_label);
 
-	m_UI->AddChild(p_water_label);
+	//m_UI->AddChild(p_water_label);
+	Rigidbody*a = new Rigidbody();
+	//a->SetVelocity(10.f,10.f);
+	PhysicsManager::GetInstance()->RegisterRigidbody(a);
+	m_UI->AddChild(a);
 	m_UI->AddChild(animation);
 
 	m_UI->SetParent(nullptr);
-	int a = 1;
 	//// 수분 게이지
 	//auto p_water = ProgressBar::Create(L"Resources\\ui_water_background.png", L"Resources\\ui_water_foreground.png");
 	//p_water->SetPosition(10, 10);

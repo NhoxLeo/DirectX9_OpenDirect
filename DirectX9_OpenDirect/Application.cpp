@@ -65,8 +65,9 @@ bool Application::Run()
 			deltaTime = deltaTime > 1 ? 0 : deltaTime;
 
 			// Update
-			//Input::GetInstance()->Update();
+			Input::GetInstance()->Update();
 			Director::GetInstance()->Update(deltaTime);
+			PhysicsManager::GetInstance()->Update(deltaTime);
 			//CollisionManager::GetInstance()->Update(deltaTime);
 
 			// Render

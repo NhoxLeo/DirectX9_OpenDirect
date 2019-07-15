@@ -1,6 +1,19 @@
 #pragma once
 #include "stdafx.h"
 
+// describes an axis-aligned rectangle with a velocity
+struct Box
+{
+	// position of top-left corner
+	float x, y;
+
+	// dimensions
+	float w, h;
+
+	// velocity
+	float vx, vy;
+};
+
 class BoxCollider;
 class CircleCollider;
 

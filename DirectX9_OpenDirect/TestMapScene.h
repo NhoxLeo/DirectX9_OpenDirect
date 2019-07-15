@@ -6,8 +6,8 @@
 class TestMapScene : public Scene {
 private:
 	//Map* m_Map;
-
 	Object* m_UI;
+	PhysicsManager* physicsManager;
 
 public:
 	TestMapScene();

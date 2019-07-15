@@ -140,6 +140,7 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="CircleCollider.h" />
     <ClInclude Include="Collider.h" />
+    <ClInclude Include="CollisionManager.h" />
     <ClInclude Include="Director.h" />
     <ClInclude Include="Input.h" />
     <ClInclude Include="Object.h" />
@@ -161,6 +162,7 @@
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="CircleCollider.cpp" />
     <ClCompile Include="Collider.cpp" />
+    <ClCompile Include="CollisionManager.cpp" />
     <ClCompile Include="Director.cpp" />
     <ClCompile Include="Input.cpp" />
     <ClCompile Include="Object.cpp" />

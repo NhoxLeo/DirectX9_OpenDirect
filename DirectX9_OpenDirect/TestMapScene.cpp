@@ -23,8 +23,24 @@ void TestMapScene::InitializeUI() {
 	m_UI->SetZOrder(1000);
 	AddChild(m_UI);
 
-	m_UI->SetParent(nullptr);
+	/*auto p_water = ProgressBar::Create(L"Resources\\ui_water_background.png", L"Resources\\ui_water_foreground.png");
+	p_water->SetPosition(10, 10);
+	p_water->SetValue(100);*/
 
+	auto p_water_label = Sprite::Create(L"Resources\\animation.png");
+	AnimationSprite* animation = new AnimationSprite(L"Resources\\animations\\cap1.png",1,11,5.0f);
+	animation->SetAnchorPoint(0.f, 0.f);
+	animation->SetPosition(200, 200);
+	p_water_label->SetAnchorPoint(0.f, 0.f);
+	p_water_label->SetPosition(300, 300);
+
+	//p_water->AddChild(p_water_label);
+
+	m_UI->AddChild(p_water_label);
+	m_UI->AddChild(animation);
+
+	m_UI->SetParent(nullptr);
+	int a = 1;
 	//// 수분 게이지
 	//auto p_water = ProgressBar::Create(L"Resources\\ui_water_background.png", L"Resources\\ui_water_foreground.png");
 	//p_water->SetPosition(10, 10);
@@ -56,7 +72,6 @@ void TestMapScene::InitializeUI() {
 
 void TestMapScene::Update(float deltaTime) {
 	Scene::Update(deltaTime);
-
 	UpdateCamera();
 }
 
@@ -65,7 +80,7 @@ void TestMapScene::Render() {
 }
 
 void TestMapScene::UpdateCamera() {
-	/*if (Input::GetInstance()->GetKeyState('A') == KeyState::Pressed) {
+	if (Input::GetInstance()->GetKeyState('A') == KeyState::Pressed) {
 		GetCamera()->Translate(-15, 0);
 	}
 	else if (Input::GetInstance()->GetKeyState('D') == KeyState::Pressed) {
@@ -90,5 +105,5 @@ void TestMapScene::UpdateCamera() {
 	}
 	else if (Input::GetInstance()->GetKeyState('E') == KeyState::Pressed) {
 		GetCamera()->Rotate(-0.05f);
-	}*/
+	}
 }

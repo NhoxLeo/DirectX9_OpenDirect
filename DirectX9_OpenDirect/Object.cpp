@@ -57,9 +57,9 @@ void Object::Render() {
 	SortZOrder();
 	CalculateMatrix();
 
-	/*if (m_Parent) {
+	if (m_Parent) {
 		m_Matrix *= m_Parent->GetMatrix();
-	}*/
+	}
 
 	//for each(const auto& child in m_Children) {
 	//	child->Render();
@@ -74,7 +74,7 @@ void Object::CalculateAnchorPointInPoint() {
 }
 
 void Object::CalculateMatrix() {
-	//D3DXMatrixTransformation2D(&m_Matrix, NULL, 0.0f, &m_Scale, NULL, m_Rotation, &m_Position);
+	D3DXMatrixTransformation2D(&m_Matrix, NULL, 0.0f, &m_Scale, NULL, m_Rotation, &m_Position);
 }
 
 void Object::AddChild(Object* child) {

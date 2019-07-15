@@ -1,10 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
     <Filter Include="Framework">
       <UniqueIdentifier>{124582a9-ccab-41ab-8933-adee150bd2de}</UniqueIdentifier>
     </Filter>
@@ -16,69 +12,230 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
     </Filter>
+    <Filter Include="Resources">
+      <UniqueIdentifier>{bc7ee92d-5c45-4e2e-9e67-b7a37aeab2b3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resources\Animation">
+      <UniqueIdentifier>{92bf8609-5ab3-435f-9eba-3eb15edccc64}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Framework\Header Files\Components">
+      <UniqueIdentifier>{ddb4e421-3c00-4255-842b-837f2426072b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Framework\Source Files\Components">
+      <UniqueIdentifier>{28eb4148-3a63-4195-bc16-ec693b941897}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Framework\Header Files\Others">
+      <UniqueIdentifier>{22f745f4-a5dc-47f9-bec4-0a89a52bda28}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Framework\Header Files\System">
+      <UniqueIdentifier>{a5b1c6ec-b591-412d-9b09-66d10601cc1e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Framework\Source Files\System">
+      <UniqueIdentifier>{30e69f36-16f6-4b69-8c75-fa9bea151968}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Application.h">
-      <Filter>Framework\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Precompiled.h">
-      <Filter>Framework\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="stdafx.h">
-      <Filter>Framework\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="TypeDefined.h">
-      <Filter>Framework\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Singleton.h">
-      <Filter>Framework\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Object.h">
-      <Filter>Framework\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Director.h">
-      <Filter>Framework\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Scene.h">
-      <Filter>Framework\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Camera.h">
-      <Filter>Framework\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Renderer.h">
-      <Filter>Framework\Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="TestMapScene.h">
       <Filter>Framework\Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="AnimationSprite.h">
+      <Filter>Framework\Header Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Camera.h">
+      <Filter>Framework\Header Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Collider.h">
+      <Filter>Framework\Header Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Input.h">
+      <Filter>Framework\Header Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Object.h">
+      <Filter>Framework\Header Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer.h">
+      <Filter>Framework\Header Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene.h">
+      <Filter>Framework\Header Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Sprite.h">
+      <Filter>Framework\Header Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Texture.h">
+      <Filter>Framework\Header Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Singleton.h">
+      <Filter>Framework\Header Files\Others</Filter>
+    </ClInclude>
+    <ClInclude Include="TypeDefined.h">
+      <Filter>Framework\Header Files\Others</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>Framework\Header Files\Others</Filter>
+    </ClInclude>
+    <ClInclude Include="Application.h">
+      <Filter>Framework\Header Files\System</Filter>
+    </ClInclude>
+    <ClInclude Include="Director.h">
+      <Filter>Framework\Header Files\System</Filter>
+    </ClInclude>
+    <ClInclude Include="Precompiled.h">
+      <Filter>Framework\Header Files\System</Filter>
+    </ClInclude>
+    <ClInclude Include="ResourceManager.h">
+      <Filter>Framework\Header Files\System</Filter>
+    </ClInclude>
+    <ClInclude Include="BoxCollider.h">
+      <Filter>Framework\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CircleCollider.h">
+      <Filter>Framework\Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Application.cpp">
-      <Filter>Framework\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Precompiled.cpp">
-      <Filter>Framework\Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="WinMain.cpp">
       <Filter>Framework</Filter>
-    </ClCompile>
-    <ClCompile Include="Object.cpp">
-      <Filter>Framework\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Director.cpp">
-      <Filter>Framework\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Scene.cpp">
-      <Filter>Framework\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Camera.cpp">
-      <Filter>Framework\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Renderer.cpp">
-      <Filter>Framework\Source Files</Filter>
     </ClCompile>
     <ClCompile Include="TestMapScene.cpp">
       <Filter>Framework\Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="AnimationSprite.cpp">
+      <Filter>Framework\Source Files\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="Input.cpp">
+      <Filter>Framework\Source Files\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="Object.cpp">
+      <Filter>Framework\Source Files\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer.cpp">
+      <Filter>Framework\Source Files\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene.cpp">
+      <Filter>Framework\Source Files\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="Sprite.cpp">
+      <Filter>Framework\Source Files\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="Texture.cpp">
+      <Filter>Framework\Source Files\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="Camera.cpp">
+      <Filter>Framework\Source Files\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="Collider.cpp">
+      <Filter>Framework\Source Files\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="Application.cpp">
+      <Filter>Framework\Source Files\System</Filter>
+    </ClCompile>
+    <ClCompile Include="Director.cpp">
+      <Filter>Framework\Source Files\System</Filter>
+    </ClCompile>
+    <ClCompile Include="Precompiled.cpp">
+      <Filter>Framework\Source Files\System</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceManager.cpp">
+      <Filter>Framework\Source Files\System</Filter>
+    </ClCompile>
+    <ClCompile Include="BoxCollider.cpp">
+      <Filter>Framework\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CircleCollider.cpp">
+      <Filter>Framework\Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Resources\build_camp.png">
+      <Filter>Resources</Filter>
+    </Image>
+    <Image Include="Resources\item_1.png">
+      <Filter>Resources</Filter>
+    </Image>
+    <Image Include="Resources\item_1_drop.png">
+      <Filter>Resources</Filter>
+    </Image>
+    <Image Include="Resources\item_2.png">
+      <Filter>Resources</Filter>
+    </Image>
+    <Image Include="Resources\item_3.png">
+      <Filter>Resources</Filter>
+    </Image>
+    <Image Include="Resources\item_4.png">
+      <Filter>Resources</Filter>
+    </Image>
+    <Image Include="Resources\item_5.png">
+      <Filter>Resources</Filter>
+    </Image>
+    <Image Include="Resources\item_6.png">
+      <Filter>Resources</Filter>
+    </Image>
+    <Image Include="Resources\item_7.png">
+      <Filter>Resources</Filter>
+    </Image>
+    <Image Include="Resources\item_8.png">
+      <Filter>Resources</Filter>
+    </Image>
+    <Image Include="Resources\map.png">
+      <Filter>Resources</Filter>
+    </Image>
+    <Image Include="Resources\player.png">
+      <Filter>Resources</Filter>
+    </Image>
+    <Image Include="Resources\tile_0.png">
+      <Filter>Resources</Filter>
+    </Image>
+    <Image Include="Resources\tile_blank.png">
+      <Filter>Resources</Filter>
+    </Image>
+    <Image Include="Resources\tile_select.png">
+      <Filter>Resources</Filter>
+    </Image>
+    <Image Include="Resources\tree.png">
+      <Filter>Resources</Filter>
+    </Image>
+    <Image Include="Resources\ui_item_box.png">
+      <Filter>Resources</Filter>
+    </Image>
+    <Image Include="Resources\ui_side_menu.png">
+      <Filter>Resources</Filter>
+    </Image>
+    <Image Include="Resources\ui_side_menu_detail.png">
+      <Filter>Resources</Filter>
+    </Image>
+    <Image Include="Resources\ui_water_background.png">
+      <Filter>Resources</Filter>
+    </Image>
+    <Image Include="Resources\ui_water_foreground.png">
+      <Filter>Resources</Filter>
+    </Image>
+    <Image Include="Resources\ui_water_label.png">
+      <Filter>Resources</Filter>
+    </Image>
+    <Image Include="Resources\animation.png">
+      <Filter>Resources</Filter>
+    </Image>
+    <Image Include="Resources\animations\cap1.png">
+      <Filter>Resources\Animation</Filter>
+    </Image>
+    <Image Include="Resources\animations\cap2.png">
+      <Filter>Resources\Animation</Filter>
+    </Image>
+    <Image Include="Resources\animations\cap3.png">
+      <Filter>Resources\Animation</Filter>
+    </Image>
+    <Image Include="Resources\animations\cap5.png">
+      <Filter>Resources\Animation</Filter>
+    </Image>
+    <Image Include="Resources\animations\shield1.png">
+      <Filter>Resources\Animation</Filter>
+    </Image>
+    <Image Include="Resources\animations\shield2.png">
+      <Filter>Resources\Animation</Filter>
+    </Image>
+    <Image Include="Resources\animations\shield3.png">
+      <Filter>Resources\Animation</Filter>
+    </Image>
   </ItemGroup>
 </Project>

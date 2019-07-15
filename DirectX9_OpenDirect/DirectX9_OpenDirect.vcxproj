@@ -28,13 +28,13 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
@@ -89,7 +89,7 @@
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -113,7 +113,7 @@
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
@@ -134,28 +134,76 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="AnimationSprite.h" />
     <ClInclude Include="Application.h" />
+    <ClInclude Include="BoxCollider.h" />
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="CircleCollider.h" />
+    <ClInclude Include="Collider.h" />
     <ClInclude Include="Director.h" />
+    <ClInclude Include="Input.h" />
     <ClInclude Include="Object.h" />
     <ClInclude Include="Precompiled.h" />
     <ClInclude Include="Renderer.h" />
+    <ClInclude Include="ResourceManager.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="Singleton.h" />
+    <ClInclude Include="Sprite.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="TestMapScene.h" />
+    <ClInclude Include="Texture.h" />
     <ClInclude Include="TypeDefined.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="AnimationSprite.cpp" />
     <ClCompile Include="Application.cpp" />
+    <ClCompile Include="BoxCollider.cpp" />
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="CircleCollider.cpp" />
+    <ClCompile Include="Collider.cpp" />
     <ClCompile Include="Director.cpp" />
+    <ClCompile Include="Input.cpp" />
     <ClCompile Include="Object.cpp" />
     <ClCompile Include="Precompiled.cpp" />
     <ClCompile Include="Renderer.cpp" />
+    <ClCompile Include="ResourceManager.cpp" />
     <ClCompile Include="Scene.cpp" />
+    <ClCompile Include="Sprite.cpp" />
     <ClCompile Include="TestMapScene.cpp" />
+    <ClCompile Include="Texture.cpp" />
     <ClCompile Include="WinMain.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Resources\animation.png" />
+    <Image Include="Resources\animations\cap1.png" />
+    <Image Include="Resources\animations\cap2.png" />
+    <Image Include="Resources\animations\cap3.png" />
+    <Image Include="Resources\animations\cap5.png" />
+    <Image Include="Resources\animations\shield1.png" />
+    <Image Include="Resources\animations\shield2.png" />
+    <Image Include="Resources\animations\shield3.png" />
+    <Image Include="Resources\build_camp.png" />
+    <Image Include="Resources\item_1.png" />
+    <Image Include="Resources\item_1_drop.png" />
+    <Image Include="Resources\item_2.png" />
+    <Image Include="Resources\item_3.png" />
+    <Image Include="Resources\item_4.png" />
+    <Image Include="Resources\item_5.png" />
+    <Image Include="Resources\item_6.png" />
+    <Image Include="Resources\item_7.png" />
+    <Image Include="Resources\item_8.png" />
+    <Image Include="Resources\map.png" />
+    <Image Include="Resources\player.png" />
+    <Image Include="Resources\tile_0.png" />
+    <Image Include="Resources\tile_blank.png" />
+    <Image Include="Resources\tile_select.png" />
+    <Image Include="Resources\tree.png" />
+    <Image Include="Resources\ui_item_box.png" />
+    <Image Include="Resources\ui_side_menu.png" />
+    <Image Include="Resources\ui_side_menu_detail.png" />
+    <Image Include="Resources\ui_water_background.png" />
+    <Image Include="Resources\ui_water_foreground.png" />
+    <Image Include="Resources\ui_water_label.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

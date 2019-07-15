@@ -34,9 +34,9 @@ bool Renderer::Initialize(HWND hWnd, int width, int height, bool fullScreen)
 	m_lpDevice->SetRenderState(D3DRS_MULTISAMPLEANTIALIAS, TRUE);
 	m_lpDevice->SetRenderState(D3DRS_ANTIALIASEDLINEENABLE, TRUE);
 
-	/*if FAILED(D3DXCreateSprite(m_lpDevice, &m_lpSprite)) {
+	if FAILED(D3DXCreateSprite(m_lpDevice, &m_lpSprite)) {
 		return false;
-	}*/
+	}
 
 	return true;
 }

@@ -5,6 +5,9 @@
 
 #define WIN32_LEAN_AND_MEAN
 
+#pragma comment(lib, "d3d9.lib")
+#pragma comment(lib,"d3dx9.lib")
+
 #include <Windows.h>
 #include <d3d9.h>
 #include <d3dx9.h>
@@ -26,15 +29,15 @@
 #include "Object.h"
 #include "Camera.h"
 #include "Director.h"
+#include "Texture.h"
+#include "ResourceManager.h"
 #include "Scene.h"
-//#include "Collider.h"
-//#include "Input.h"
-//#include "Texture.h"
-//#include "ResourceManager.h"
+#include "Sprite.h"
+#include "AnimationSprite.h"
+#include "Collider.h"
+#include "Input.h"
+#include "CircleCollider.h"
+#include "BoxCollider.h"
 //#include "Label.h"
-//#include "Sprite.h"
 //#include "AnimationGroup.h"
-//#include "AnimationSprite.h"
 //#include "ProgressBar.h"
-//#include "CircleCollider.h"
-//#include "BoxCollider.h"

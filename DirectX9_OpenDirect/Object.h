@@ -1,7 +1,7 @@
 #pragma once
 #include "stdafx.h"
 
-//class Collider;
+class Collider;
 class Object {
 protected:
 	typedef std::vector<Object*> ObjectList;
@@ -39,7 +39,7 @@ public:
 	virtual void Update(float deltaTime);
 	virtual void Render();
 
-	//virtual void OnCollision(Collider* collider) {};
+	virtual void OnCollision(Collider* collider) {};
 
 public:
 	void AddChild(Object* obj);

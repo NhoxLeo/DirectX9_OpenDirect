@@ -41,7 +41,6 @@ bool Director::Render()
 
 bool Director::SetScene(Scene* scene)
 {
-	// 기존 장면을 메모리에서 삭제합니다
 	if (m_CurrentScene)
 	{
 		SAFE_DELETE(m_CurrentScene);

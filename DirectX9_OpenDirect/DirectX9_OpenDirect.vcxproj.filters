@@ -101,6 +101,9 @@
     <ClInclude Include="PhysicsManager.h">
       <Filter>Framework\Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Network.h">
+      <Filter>Framework\Header Files\Components</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="WinMain.cpp">
@@ -162,6 +165,9 @@
     </ClCompile>
     <ClCompile Include="PhysicsManager.cpp">
       <Filter>Framework\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Network.cpp">
+      <Filter>Framework\Source Files\Components</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

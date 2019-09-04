@@ -41,6 +41,7 @@
 #include "CollisionManager.h"
 #include "Rigidbody.h"
 #include "PhysicsManager.h"
+#include "Network.h"
 //#include "Label.h"
 //#include "AnimationGroup.h"
 //#include "ProgressBar.h"

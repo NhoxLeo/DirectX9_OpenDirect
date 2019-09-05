@@ -195,8 +195,9 @@ INT WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, INT)
 	SOCKET sSocket;
 	HANDLE hRecvEvent;
 
-	if (SUCCEEDED(InitializeWinsock(&sSocket, &hRecvEvent)) && SUCCEEDED(ConnectToServer(sSocket, hRecvEvent)))
+	if (SUCCEEDED(InitializeWinsock(&sSocket, &hRecvEvent)))
 	{
+		if (SUCCEEDED(ConnectToServer(sSocket, hRecvEvent)));
 		app->Initialize(asd, 640, 480, false);
 		//app->Initialize(L"Universe2D.Sample1", 1280, 720, false);
 		Director::GetInstance()->SetScene(TestMapScene::Create());

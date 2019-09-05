@@ -107,9 +107,6 @@
     <ClInclude Include="resource.h">
       <Filter>Framework\Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="resource1.h">
-      <Filter>Framework\Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="WinMain.cpp">
@@ -269,9 +266,9 @@
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="IPaddress.rc" />
+    <None Include="idd_serv.bin" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="idd_serv.bin" />
+    <ResourceCompile Include="IPAdress.rc" />
   </ItemGroup>
 </Project>

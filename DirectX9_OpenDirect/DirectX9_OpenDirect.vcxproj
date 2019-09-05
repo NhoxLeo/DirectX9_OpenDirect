@@ -151,7 +151,6 @@
     <ClInclude Include="Precompiled.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="resource.h" />
-    <ClInclude Include="resource1.h" />
     <ClInclude Include="ResourceManager.h" />
     <ClInclude Include="Rigidbody.h" />
     <ClInclude Include="Scene.h" />
@@ -218,10 +217,10 @@
     <Image Include="Resources\ui_water_label.png" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="IPaddress.rc" />
+    <None Include="idd_serv.bin" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="idd_serv.bin" />
+    <ResourceCompile Include="IPAdress.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -192,11 +192,19 @@ INT WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, INT)
 
 	wchar_t* asd = (wchar_t*)L"Test";
 
-	//app->Initialize(L"Universe2D.Sample1", 1280, 720, false);
-	app->Initialize(asd, 640, 480, false);
+	SOCKET sSocket;
+	HANDLE hRecvEvent;
 
-	Director::GetInstance()->SetScene(TestMapScene::Create());
+	if (SUCCEEDED(InitializeWinsock(&sSocket, &hRecvEvent)) && SUCCEEDED(ConnectToServer(sSocket, hRecvEvent)))
+	{
+		app->Initialize(asd, 640, 480, false);
+		//app->Initialize(L"Universe2D.Sample1", 1280, 720, false);
+		Director::GetInstance()->SetScene(TestMapScene::Create());
 
-	app->Run();
-	app->Release();
+		app->Run();
+		app->Release();
+	}
+
+
+	
 }

@@ -104,6 +104,12 @@
     <ClInclude Include="Rigidbody.h">
       <Filter>Framework\Header Files\Components</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Framework\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="resource1.h">
+      <Filter>Framework\Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="WinMain.cpp">
@@ -261,5 +267,11 @@
     <Image Include="Resources\animations\shield3.png">
       <Filter>Resources\Animation</Filter>
     </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="IPaddress.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="idd_serv.bin" />
   </ItemGroup>
 </Project>

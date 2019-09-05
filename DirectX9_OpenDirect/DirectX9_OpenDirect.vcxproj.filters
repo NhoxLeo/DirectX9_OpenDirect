@@ -95,13 +95,13 @@
     <ClInclude Include="CircleCollider.h">
       <Filter>Framework\Header Files\Components</Filter>
     </ClInclude>
-    <ClInclude Include="Rigidbody.h">
-      <Filter>Framework\Header Files</Filter>
+    <ClInclude Include="Network.h">
+      <Filter>Framework\Header Files\Components</Filter>
     </ClInclude>
     <ClInclude Include="PhysicsManager.h">
-      <Filter>Framework\Header Files</Filter>
+      <Filter>Framework\Header Files\System</Filter>
     </ClInclude>
-    <ClInclude Include="Network.h">
+    <ClInclude Include="Rigidbody.h">
       <Filter>Framework\Header Files\Components</Filter>
     </ClInclude>
   </ItemGroup>
@@ -160,13 +160,13 @@
     <ClCompile Include="CircleCollider.cpp">
       <Filter>Framework\Source Files\System</Filter>
     </ClCompile>
-    <ClCompile Include="Rigidbody.cpp">
-      <Filter>Framework\Source Files</Filter>
+    <ClCompile Include="Network.cpp">
+      <Filter>Framework\Source Files\Components</Filter>
     </ClCompile>
     <ClCompile Include="PhysicsManager.cpp">
-      <Filter>Framework\Source Files</Filter>
+      <Filter>Framework\Source Files\System</Filter>
     </ClCompile>
-    <ClCompile Include="Network.cpp">
+    <ClCompile Include="Rigidbody.cpp">
       <Filter>Framework\Source Files\Components</Filter>
     </ClCompile>
   </ItemGroup>

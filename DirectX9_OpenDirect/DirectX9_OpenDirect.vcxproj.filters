@@ -33,6 +33,12 @@
     <Filter Include="Framework\Source Files\System">
       <UniqueIdentifier>{30e69f36-16f6-4b69-8c75-fa9bea151968}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Framework\Header Files\Network">
+      <UniqueIdentifier>{28e01d87-5520-475f-9fdb-8b042d223e15}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Framework\Source Files\Network">
+      <UniqueIdentifier>{bc41670e-a7ce-42f0-847e-2933ea3a4f4e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TestMapScene.h">
@@ -95,9 +101,6 @@
     <ClInclude Include="CircleCollider.h">
       <Filter>Framework\Header Files\Components</Filter>
     </ClInclude>
-    <ClInclude Include="Network.h">
-      <Filter>Framework\Header Files\Components</Filter>
-    </ClInclude>
     <ClInclude Include="PhysicsManager.h">
       <Filter>Framework\Header Files\System</Filter>
     </ClInclude>
@@ -106,6 +109,18 @@
     </ClInclude>
     <ClInclude Include="resource.h">
       <Filter>Framework\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Networker.h">
+      <Filter>Framework\Header Files\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="CommunicateWithServerFunctor.h">
+      <Filter>Framework\Header Files\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="NetworkCommunicationData.h">
+      <Filter>Framework\Header Files\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="ClientSharedData.h">
+      <Filter>Framework\Header Files\Network</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -163,14 +178,20 @@
     <ClCompile Include="CircleCollider.cpp">
       <Filter>Framework\Source Files\System</Filter>
     </ClCompile>
-    <ClCompile Include="Network.cpp">
-      <Filter>Framework\Source Files\Components</Filter>
-    </ClCompile>
     <ClCompile Include="PhysicsManager.cpp">
       <Filter>Framework\Source Files\System</Filter>
     </ClCompile>
     <ClCompile Include="Rigidbody.cpp">
       <Filter>Framework\Source Files\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="Networker.cpp">
+      <Filter>Framework\Source Files\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="CommunicateWithServerFunctor.cpp">
+      <Filter>Framework\Source Files\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="client.cpp">
+      <Filter>Framework</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

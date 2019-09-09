@@ -1,389 +1,99 @@
-#include <stdio.h>
-#include <conio.h>
-#include "user.h"
-using namespace Server;
-
-// Settings that define how the server operates
-#define WINSOCK_VERSION     MAKEWORD(2,2)
-#define SERVER_COMM_PORT    27192
-#define MAX_PACKET_SIZE     1024
-#define MAX_USERS           16
+#include "Server.h"
 
 
-// Global variables used in the server program.  These variables are global because they are used
-// by the server thread and initialized in the main thread.  It would be inefficient and
-// duplicative to find an object-oriented workaround.
-HANDLE g_hExitEvent;    // Set when the server shuts down
-HANDLE g_hCommThread;   // Thread processing object
-WSAEVENT g_hRecvEvent;  // Event triggered when data is received
-SOCKET g_sSocket;       // Socket to send and receive on
-
-// Global variables for client management
-//HANDLE g_hUserSemaphore;    // Allows only a certain number of users to process simultaneously
-User g_Users[MAX_USERS];    // List of all of the users
-
-enum Message
+Server::Server(void)
 {
-	MSG_LOGON,
-	MSG_LOGOFF,
-	MSG_UPDATEPLAYER,
-	MSG_CONFIRMLOGON,
-	MSG_PLAYERLOGGEDOFF,
-};
-
-struct MessageHeader
-{
-	Message MsgID;
-};
-
-struct LogOnMessage
-{
-	MessageHeader   Header;
-
-	LogOnMessage() { Header.MsgID = MSG_LOGON; }
-};
-
-struct LogOffMessage
-{
-	MessageHeader   Header;
-
-	LogOffMessage() { Header.MsgID = MSG_LOGOFF; }
-};
-
-struct UpdatePlayerMessage
-{
-	MessageHeader   Header;
-	DWORD           dwPlayerID;
-	FLOAT           fVelocity[3];       // Expressed in meters / second
-	FLOAT           fPosition[3];
-	DWORD           dwState;
-	FLOAT           fYaw;
-
-	UpdatePlayerMessage() { Header.MsgID = MSG_UPDATEPLAYER; }
-};
-
-struct ConfirmLogOnMessage
-{
-	MessageHeader   Header;
-
-	ConfirmLogOnMessage() { Header.MsgID = MSG_CONFIRMLOGON; }
-};
-
-struct PlayerLoggedOff
-{
-	MessageHeader   Header;
-	DWORD           dwPlayerID;
-
-	PlayerLoggedOff() { Header.MsgID = MSG_PLAYERLOGGEDOFF; }
-};
-
-
-BOOL WaitForPackets()
-{
-	WSAEVENT hEvents[] = { g_hRecvEvent, g_hExitEvent };
-	return WAIT_OBJECT_0 == WSAWaitForMultipleEvents(2, hEvents, FALSE, INFINITE, FALSE);
 }
 
-
-int RecvPacket(char * pBuffer, int length, SOCKADDR_IN * pAddress)
+// start the server, create a listen socket and start the worker thread
+// returns 0 if everything was setup successfully, -1 otherwise
+int Server::start(void)
 {
-	// CHEAP TRICK!!  Force the receive event to reset.  Find out why this doesn't usually work!!
-	ResetEvent(g_hRecvEvent);
-
-	// Size of the address structure
-	int iFromLen = sizeof(SOCKADDR_IN);
-
-	// Perform the operation
-	return recvfrom(g_sSocket, pBuffer, length, 0, (LPSOCKADDR)pAddress, &iFromLen);
-}
-
-
-int SendPacket(const LPSOCKADDR_IN pAddress, const CHAR * pBuffer, int length)
-{
-	return sendto(g_sSocket, pBuffer, length, 0, (LPSOCKADDR)&pAddress, sizeof(SOCKADDR_IN));
-}
-
-HRESULT ProcessUserPacket(User * pUser, const CHAR * pBuffer, DWORD dwSize)
-{
-	// Get the message header so we can determine the type of the packet
-	MessageHeader * mh = (MessageHeader*)pBuffer;
-
-	// Process the message
-	switch (mh->MsgID)
+	if (networker.setup() != NW_OK)
 	{
-	case MSG_LOGOFF:
-	{
-		// Get this user's ID number
-		DWORD dwId = pUser->GetId();
-
-		// Build a disconnect message
-		PlayerLoggedOff packet;
-		packet.dwPlayerID = dwId;
-
-		// Tell all of the other users that this player disconnected
-		for (DWORD i = 0; i < MAX_USERS; ++i)
-		{
-			// Send to all connected users except the source
-			if ((i != dwId) && (g_Users[i].IsConnected()))
-				g_Users[i].SendPacket((CHAR*)&packet, sizeof(packet));
-		}
-
-		// Disconnect the user
-		pUser->Disconnect();
-
-		// Return a success message, but the recieve loop can't continue
-		return S_FALSE;
+		cout << "\nSetting up the networker failed.";
+		return -1;
 	}
-
-	case MSG_UPDATEPLAYER:
+	// the two arguments could be obtained by asking for user input but are, in this case, left to these defaut values
+	if (networker.bind("any", 8888) != NW_OK)
 	{
-		// Get this user's ID number
-		DWORD dwId = pUser->GetId();
-
-		// Set the message's ID component
-		UpdatePlayerMessage upm;
-		memcpy(&upm, pBuffer, dwSize);
-		upm.dwPlayerID = dwId;
-
-		// Re-broadcast this message
-		for (DWORD i = 0; i < MAX_USERS; ++i)
-		{
-			// Send to all connected users except the source
-			if ((i != dwId) && (g_Users[i].IsConnected()))
-				g_Users[i].SendPacket((CHAR*)&upm, dwSize);
-		}
-
-	} break;
-
-	default:
-	{
-		// This message type couldn't be processed
-		return E_FAIL;
+		cout << "\nBinding the networker failed.";
+		return -1;
 	}
-	}
-
-	// Success
-	return S_OK;
-}
-
-DWORD WINAPI UserProcessor(LPVOID pParam)
-{
-	// Get a pointer to the user structure
-	User * pUser = (User*)pParam;
-
-	// Send a message to the user telling them that they have successfully logged on
+	if (networker.setNonBlockingMode(true) != NW_OK)
 	{
-		// Build a packet
-		ConfirmLogOnMessage packet;
-
-		// Send the packet
-		pUser->SendPacket((CHAR*)&packet, sizeof(packet));
+		cout << "\nSetting the networker to non-blocking mode failed.";
+		return -1;
 	}
-
-	// Activity flag
-	BOOL bUserActive = TRUE;
-
-	// Enter the processing loop
-	while (bUserActive)
+	if (networker.startListening(4) != NW_OK)
 	{
-		// Wait for something to happen or for 5 seconds to expire
-		switch (pUser->WaitForPackets(5000))
-		{
-			// When a packet is recieved, process it
-		case EWR_RECVPACKET:
-		{
-			OutputDebugString(".");
+		cout << "\nPlacing the networker in listening mode failed.";
+		return -1;
+	}
+	else
+	{
+		// start a thread that will process clients connecting to the server
+		sharedData.doRun = true;
+		workerThread = thread(ProcessClientsFunctor(), &sharedData);
 
-			// Buffers used to recieve data
-			CHAR buffer[MAX_PACKET_SIZE];
-			int size;
-
-			// Get the packet
-			while (SOCKET_ERROR != (size = pUser->RecvPacket(buffer, sizeof(buffer))))
+		// Determine the IP address of the machine the server is running on and display it on the console.
+		// (as the machine may have several IP addresses associated to it, all of them will be displayed and it is up to
+		// the user to choose the correct one when starting a client)
+		// This is just for convenience (if it doesn't work, ipconfig has to be used to obtain server's IP)
+		list<string> ipAddresses = Networker::getLocalIPs();
+		if (!ipAddresses.empty())
+		{
+			cout << "\nIP addresses associated to this machine:";
+			for (list<string>::iterator it = ipAddresses.begin(); it != ipAddresses.end(); ++it)
 			{
-				// Process information from the packet
-				if (S_FALSE == ProcessUserPacket(pUser, buffer, size))
-					break;
+				cout << "\n - " << (*it);
 			}
-
-		} break;
-
-		// If the user hasn't sent a message in a while, determine if the program wants to
-		// exit.  If it does, break the loop.
-		case EWR_TIMEOUT:
-		{
-			// Output message
-			printf("\n[%u] lagged out", pUser->GetId());
-
-			// If the global termination event is set, exit
-			if (WAIT_OBJECT_0 == WaitForSingleObject(g_hExitEvent, 0))
-				break;
-
-			// Log this player out
-			//pUser->Disconnect();
-
-		} break;
-
-		// This user has been forcibly disconnected by the server, usually by shutting down.
-		case EWR_DISCONNECT:
-		{
-			// Output message
-			printf("\n[%u] disconnected", pUser->GetId());
-
-			// No longer active
-			bUserActive = FALSE;
-
-		} break;
+			cout << endl;
 		}
+
+		cout << "\nThis machine is now running the server side of the application.\nYou can now run the 'Client.exe' on this computer or another one in order to\ncreate a client and connect to the server.";
+		cout << "\nYou can terminate the server at any time by closing this console window.\nThis will also lead to the termination of all clients currently connected\nto the server." << endl;
+		cout << "\nWaiting for incoming connections...";
+
+		return 0;
 	}
-
-	pUser->ThreadFinished();
-
-	// Success
-	return S_OK;
 }
 
-
-HRESULT LogOnNewPlayer(const SOCKADDR_IN * pAddr)
+// listen for and accept new connections
+void Server::run(void)
 {
-	// Look through the list
-	for (int i = 0; i < MAX_USERS; ++i)
+	Networker newNetworker;
+
+	newNetworker = networker.acceptConnection();
+
+	if (newNetworker.isValid())
 	{
-		// If this user structure isn't already handling someone, set up the connection
-		if (g_Users[i].IsConnected() == FALSE)
+		if (newNetworker.setNonBlockingMode(true) == NW_OK)
 		{
-			printf("\nLogged on user %i", i);
-			return g_Users[i].Connect(pAddr, UserProcessor);
+			// make sure no other thread is currently accessing the list for new networkers
+			lock_guard<std::mutex> lock(sharedData.newSocketsMutex);
+
+			// add the new networker to the container temporarily storing networkers of new clients
+			sharedData.newNetworkers.push(newNetworker);
 		}
+		cout << "\nNew client connected.";
 	}
-
-	// Couldn't find a place for the player
-	return E_FAIL;
 }
 
-
-DWORD WINAPI CommThread(LPVOID pParam)
+Server::~Server(void)
 {
-	// Wait for things to happen
-	while (WaitForPackets())
-	{
-		// Holds incoming data values
-		char buffer[MAX_PACKET_SIZE];
-		SOCKADDR_IN address;
-		int len;
+	// shut down worker thread
+	sharedData.doRun = false;
 
-		ZeroMemory(buffer, sizeof(buffer));
+	// wait for the worker thread to terminate
+	workerThread.join();
 
-		// Get data until the operation would block
-		while (SOCKET_ERROR != (len = RecvPacket(buffer, sizeof(buffer), &address)))
-		{
-			MessageHeader * pMh = (MessageHeader*)buffer;
-			if (pMh->MsgID == MSG_LOGON)
-				LogOnNewPlayer(&address);
-		}
-	}
+	// shut down and close the networker (listening socket)
+	networker.shutDown();
 
-	// Success
-	return S_OK;
+	// clean up any ressources left
+	Networker::cleanUp();
+
+	cout << "\nServer terminated.";
 }
 
-
-int main()
-{
-	// Start up Winsock
-	{
-		// Stores information about Winsock
-		WSADATA wsaData;
-
-		// Call the DLL initialization function
-		if (SOCKET_ERROR == WSAStartup(WINSOCK_VERSION, &wsaData) ||
-			wsaData.wVersion != WINSOCK_VERSION)
-			return -1;
-	}
-
-	// Tell the user the local IP address and host information
-	{
-		CHAR strHostName[80];
-		if (SOCKET_ERROR == gethostname(strHostName, sizeof(strHostName)))
-			return -1;
-
-		// Get the entry in the host table
-		LPHOSTENT pHostEnt = gethostbyname(strHostName);
-		if (!pHostEnt)
-			return -1;
-
-		// Get the primary address from the host entry table
-		in_addr addr;
-		memcpy(&addr, pHostEnt->h_addr_list[0], sizeof(addr));
-
-		// Tell the user information about the server
-		printf("Server '%s' is operating at %s\n", strHostName, inet_ntoa(addr));
-	}
-
-	// Set up server data
-	{
-		// Initialize the exit event
-		g_hExitEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
-
-		// Set up the main socket to accept and send UDP packets
-		g_sSocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-
-		// Generate the address to bind to
-		SOCKADDR_IN addr;
-		addr.sin_family = AF_INET;
-		addr.sin_port = htons(SERVER_COMM_PORT);
-		addr.sin_addr.S_un.S_addr = INADDR_ANY;
-
-		// Bind it to a port
-		if (SOCKET_ERROR == bind(g_sSocket, (LPSOCKADDR)&addr, sizeof(SOCKADDR_IN)))
-			return -1;
-
-		// Create the event
-		g_hRecvEvent = WSACreateEvent();
-		if (SOCKET_ERROR == WSAEventSelect(g_sSocket, g_hRecvEvent, FD_READ))
-			return -1;
-
-		// Create the processor thread
-		if (NULL == (g_hCommThread = CreateThread(NULL, 0, CommThread, NULL, 0, NULL)))
-			return -1;
-	}
-
-	// Initialize all of the clients
-	{
-		WORD wBasePort = SERVER_COMM_PORT + 1;
-		for (int i = 0; i < MAX_USERS; ++i)
-			while (!g_Users[i].Create(i, wBasePort + i)) { wBasePort++; }
-	}
-
-	// Tell the user that the server has been initialized
-	printf("Server successfully initialized.  Press any key to exit...");
-
-	// Repeat until the termination event is set
-	while (WAIT_OBJECT_0 != WaitForSingleObject(g_hExitEvent, 0))
-	{
-		// Wait for 10 seconds to exit
-		_getch();
-		SetEvent(g_hExitEvent);
-	}
-
-	// Wait for the main thread to terminate
-	WaitForSingleObject(g_hCommThread, INFINITE);
-
-	// Shut down all of the clients
-	{
-		for (int i = 0; i < MAX_USERS; ++i)
-			g_Users[i].Destroy();
-	}
-
-	// Delete the receive event
-	WSACloseEvent(g_hRecvEvent);
-
-	// Close the socket
-	closesocket(g_sSocket);
-
-	// Shut down Winsock
-	WSACleanup();
-
-	// Success
-	return 0;
-}

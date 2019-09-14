@@ -910,4 +910,3 @@ void ProcessClientsFunctor::createDrawingData(DrawableObject objectType, Drawing
 		break;
 	}
 }
-

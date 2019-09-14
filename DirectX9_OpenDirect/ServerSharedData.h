@@ -1,5 +1,4 @@
-#ifndef SERVER_SHARED_DATA_H
-#define SERVER_SHARED_DATA_H
+#pragma once
 
 #include <mutex>
 #include <queue>
@@ -20,5 +19,3 @@ struct ServerSharedData
 	// as long as this is set to true, the worker thread keeps running
 	bool doRun;
 };
-
-#endif

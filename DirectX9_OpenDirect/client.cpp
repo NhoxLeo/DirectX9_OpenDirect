@@ -18,6 +18,7 @@
 
 #include "ClientSharedData.h"
 #include "CommunicateWithServerFunctor.h"
+#include "Server.h"
 
 //#pragma comment(lib,"ws2_32.lib") 	// Use this library whilst linking - contains the Winsock2 implementation.
 
@@ -1516,6 +1517,20 @@ LRESULT WINAPI MsgProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 // This sort of procedure is mostly standard, and could be used in most
 // DirectX applications.
 
+bool g_isClosing = false;
+BOOL ConsoleCtrlHandler(DWORD eventType)
+{
+	if (eventType == CTRL_CLOSE_EVENT)
+	{
+		g_isClosing = true;
+		return TRUE;
+	}
+	else
+	{
+		return FALSE;
+	}
+}
+
 int WINAPI WinMain(HINSTANCE hInst, HINSTANCE, LPSTR, int)
 {
 	// create a console in addition to the window and bind the standard streams to it
@@ -1526,121 +1541,145 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE, LPSTR, int)
 	freopen_s(&stream, "CONOUT$", "w+t", stdout);
 	freopen_s(&stream, "CONOUT$", "w+t", stderr);
 
-	// validate user input; currently only ip4 addresses are accepted
-	string ipAddress;
-	bool isValidAddress;
+	cout << "Choose 'server' or 'client' by typing it down \n";
+	string option;
 	do
 	{
-		cout << "\nPlease enter ip address of the server you want to connect to.\nOnly IP4 addresses are supported right now.\nType in 'localhost' if you want to connect to a server is running\non this machine\n";
-		cin >> ipAddress;
+		cout << "Choose 'server' or 'client' by typing 'server' or 'client' down \n";
+		cin >> option;
+	} while (option != "server" && option != "client");
 
-		if (ipAddress == "localhost")
-		{
-			isValidAddress = true;
-		}
-		else
-		{
-			istringstream iss(ipAddress);
-			int firstNumber = 0, secondNumber = 0, thirdNumber = 0, fourthNumber = 0;
-			char firstChar = ' ', secondChar = ' ', thirdChar = ' ';
-			iss >> firstNumber >> firstChar >> secondNumber >> secondChar >> thirdNumber >> thirdChar >> fourthNumber;
-
-			isValidAddress = (firstNumber >= 0) && (firstNumber < 256) && (firstChar == '.') && (secondNumber >= 0) && (secondNumber < 256) &&
-				(secondChar == '.') && (thirdNumber >= 0) && (thirdNumber < 256) && (thirdChar == '.') && (fourthNumber >= 0) && (fourthNumber < 256);
-		}
-	} while (!isValidAddress);
-
-	cout << "\nConnecting to server...";
-
-
-	// Register the window class
-	WNDCLASSEX wc = { sizeof(WNDCLASSEX), CS_CLASSDC, MsgProc, 0L, 0L,
-					 GetModuleHandle(NULL), NULL, NULL, NULL, NULL,
-					 L"Networking Assignment", NULL };
-	RegisterClassEx(&wc);
-
-	// determine extents of the work area of the screen (identical to full screen size but minus taskbar)
-	RECT workArea;
-	SystemParametersInfo(SPI_GETWORKAREA, 0, &workArea, 0);
-
-	int windowX = workArea.left;
-	int windowY = workArea.top;
-	int windowWidth = workArea.right - workArea.left;
-	int windowHeight = workArea.bottom - workArea.top;
-
-	int hRes = workArea.right - workArea.left;
-	int vRes = workArea.bottom - workArea.top;
-
-	// Create the application's window (set to size of work area)
-	HWND hWnd = CreateWindow(L"Networking Assignment", L"Networking Assignment",
-		WS_OVERLAPPEDWINDOW, 0, 0, hRes, vRes,
-		GetDesktopWindow(), NULL, wc.hInstance, NULL);
-
-
-	// Initialize Direct3D
-	if (SUCCEEDED(SetupD3D(hWnd)))
+	if (option == "server")
 	{
-		// determine size of the viewport in world space (used in some other functions)
-		g_ViewportSizeHeight = (abs(g_CameraZ) * tan(D3DX_PI / 8)) * 2.0f;
-		g_ViewportSizeWidth = g_ViewportSizeHeight * static_cast<float>(hRes) / vRes;
+		BOOL ConsoleCtrlHandler(DWORD eventType);
 
-		// Create the scene geometry
-		if (SUCCEEDED(SetupGeometry()))
+		// create a server object
+		Server server;
+		// start the server and check if startup succeeded
+		if (server.start() == 0)
 		{
-			// Show the window (make sure it's maximized -> fullscreen)
-			ShowWindow(hWnd, SW_MAXIMIZE);
-			UpdateWindow(hWnd);
-
-			// initialize the shared data structure
-			sharedData.doRun = true;
-			sharedData.isWorkerThreadRunning = true;
-			sharedData.connectionEstablished = false;
-
-			// create a worker thread that will create a connection to the server and communicate with it
-			thread workerThread = thread(CommunicateWithServerFunctor(), &sharedData, ipAddress.c_str());
-
-			// setup some additional stuff (while worker thread is connecting)
-			SetupFont();
-			SetupTextures();
-			placeLevelObjects();
-			loadProjectile();
-
-			// Enter the message loop
-			MSG msg;
-			ZeroMemory(&msg, sizeof(msg));
-
-			// wait for notification from worker thread that connection to server has been established
-			// if connection cannot be established within a specified time interval, close the client
-			std::unique_lock<std::mutex> connectionEstablishedLock(sharedData.connectionEstablishedMutex);
-			if (sharedData.connectionEstablishedCondition.wait_for(connectionEstablishedLock, chrono::milliseconds(TIMEOUT_INTERVAL), [] {return sharedData.connectionEstablished; }))
+			// register a new console handler to be able to determine when the user closes the console
+			SetConsoleCtrlHandler((PHANDLER_ROUTINE)ConsoleCtrlHandler, TRUE);
+			// as long as the user doesn't close the console, keep the server running (listening to new connections)
+			while (!g_isClosing)
 			{
-				// console no longer needed
-				FreeConsole();
-
-				while (msg.message != WM_QUIT && sharedData.isWorkerThreadRunning)
-				{
-					if (PeekMessage(&msg, NULL, 0U, 0U, PM_REMOVE))
-					{
-						TranslateMessage(&msg);
-						DispatchMessage(&msg);
-					}
-					else
-					{
-						Render();
-					}
-				}
-
-				// quit message received, terminate worker thread
-				sharedData.doRun = false;
+				server.run();
 			}
-			// wait for the worker thread to finish
-			workerThread.join();
-
-
 		}
-	}
-	cout << "\nClient terminated";
-	UnregisterClass(L"Networking Assignment", wc.hInstance);
 
-	return 0;
+		// the server object's destructor will be called automatically
+		return 0;
+	}
+	else if (option == "client")
+	{
+		// validate user input; currently only ip4 addresses are accepted
+		string ipAddress;
+		bool isValidAddress;
+		do
+		{
+			cout << "\nPlease enter ip address of the server you want to connect to.\nOnly IP4 addresses are supported right now.\nType in 'localhost' if you want to connect to a server is running\non this machine\n";
+			cin >> ipAddress;
+
+			if (ipAddress == "localhost")
+			{
+				isValidAddress = true;
+			}
+			else
+			{
+				istringstream iss(ipAddress);
+				int firstNumber = 0, secondNumber = 0, thirdNumber = 0, fourthNumber = 0;
+				char firstChar = ' ', secondChar = ' ', thirdChar = ' ';
+				iss >> firstNumber >> firstChar >> secondNumber >> secondChar >> thirdNumber >> thirdChar >> fourthNumber;
+
+				isValidAddress = (firstNumber >= 0) && (firstNumber < 256) && (firstChar == '.') && (secondNumber >= 0) && (secondNumber < 256) &&
+					(secondChar == '.') && (thirdNumber >= 0) && (thirdNumber < 256) && (thirdChar == '.') && (fourthNumber >= 0) && (fourthNumber < 256);
+			}
+		} while (!isValidAddress);
+		cout << "\nConnecting to server...";
+
+		// Register the window class
+		WNDCLASSEX wc = { sizeof(WNDCLASSEX), CS_CLASSDC, MsgProc, 0L, 0L,
+						 GetModuleHandle(NULL), NULL, NULL, NULL, NULL,
+						 L"Networking Assignment", NULL };
+		RegisterClassEx(&wc);
+		// determine extents of the work area of the screen (identical to full screen size but minus taskbar)
+		RECT workArea;
+		SystemParametersInfo(SPI_GETWORKAREA, 0, &workArea, 0);
+		int windowX = workArea.left;
+		int windowY = workArea.top;
+		int windowWidth = workArea.right - workArea.left;
+		int windowHeight = workArea.bottom - workArea.top;
+		int hRes = workArea.right - workArea.left;
+		int vRes = workArea.bottom - workArea.top;
+		// Create the application's window (set to size of work area)
+		HWND hWnd = CreateWindow(L"Networking Assignment", L"Networking Assignment",
+			WS_OVERLAPPEDWINDOW, 0, 0, hRes, vRes,
+			GetDesktopWindow(), NULL, wc.hInstance, NULL);
+		// Initialize Direct3D
+		if (SUCCEEDED(SetupD3D(hWnd)))
+		{
+			// determine size of the viewport in world space (used in some other functions)
+			g_ViewportSizeHeight = (abs(g_CameraZ) * tan(D3DX_PI / 8)) * 2.0f;
+			g_ViewportSizeWidth = g_ViewportSizeHeight * static_cast<float>(hRes) / vRes;
+
+			// Create the scene geometry
+			if (SUCCEEDED(SetupGeometry()))
+			{
+				// Show the window (make sure it's maximized -> fullscreen)
+				ShowWindow(hWnd, SW_MAXIMIZE);
+				UpdateWindow(hWnd);
+
+				// initialize the shared data structure
+				sharedData.doRun = true;
+				sharedData.isWorkerThreadRunning = true;
+				sharedData.connectionEstablished = false;
+
+				// create a worker thread that will create a connection to the server and communicate with it
+				thread workerThread = thread(CommunicateWithServerFunctor(), &sharedData, ipAddress.c_str());
+
+				// setup some additional stuff (while worker thread is connecting)
+				SetupFont();
+				SetupTextures();
+				placeLevelObjects();
+				loadProjectile();
+
+				// Enter the message loop
+				MSG msg;
+				ZeroMemory(&msg, sizeof(msg));
+
+				// wait for notification from worker thread that connection to server has been established
+				// if connection cannot be established within a specified time interval, close the client
+				std::unique_lock<std::mutex> connectionEstablishedLock(sharedData.connectionEstablishedMutex);
+				if (sharedData.connectionEstablishedCondition.wait_for(connectionEstablishedLock, chrono::milliseconds(TIMEOUT_INTERVAL), [] {return sharedData.connectionEstablished; }))
+				{
+					// console no longer needed
+					FreeConsole();
+
+					while (msg.message != WM_QUIT && sharedData.isWorkerThreadRunning)
+					{
+						if (PeekMessage(&msg, NULL, 0U, 0U, PM_REMOVE))
+						{
+							TranslateMessage(&msg);
+							DispatchMessage(&msg);
+						}
+						else
+						{
+							Render();
+						}
+					}
+
+					// quit message received, terminate worker thread
+					sharedData.doRun = false;
+				}
+				// wait for the worker thread to finish
+				workerThread.join();
+
+
+			}
+		}
+		cout << "\nClient terminated";
+		UnregisterClass(L"Networking Assignment", wc.hInstance);
+
+		return 0;
+	}
 }

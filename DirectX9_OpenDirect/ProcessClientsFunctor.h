@@ -1,5 +1,4 @@
-#ifndef PROCESS_CLIENTS_FUNCTOR_H
-#define PROCESS_CLIENTS_FUNCTOR_H
+#pragma once
 
 #include <list>
 #include <mutex>
@@ -74,5 +73,3 @@ private:
 	void moveObject(Client& client, DrawingData& data);
 	void destroyObject(Client& client, DrawingData& data);
 };
-
-#endif 

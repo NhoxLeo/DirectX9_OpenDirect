@@ -122,6 +122,15 @@
     <ClInclude Include="ClientSharedData.h">
       <Filter>Framework\Header Files\Network</Filter>
     </ClInclude>
+    <ClInclude Include="ServerSharedData.h">
+      <Filter>Framework\Header Files\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="ProcessClientsFunctor.h">
+      <Filter>Framework\Header Files\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="Server.h">
+      <Filter>Framework\Header Files\Network</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="WinMain.cpp">
@@ -192,6 +201,12 @@
     </ClCompile>
     <ClCompile Include="client.cpp">
       <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="ProcessClientsFunctor.cpp">
+      <Filter>Framework\Source Files\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="Server.cpp">
+      <Filter>Framework\Source Files\Network</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -1,6 +1,4 @@
-#ifndef SERVER_H
-#define SERVER_H
-
+#pragma once
 #include <list>
 #include <mutex>
 #include <iostream>
@@ -27,5 +25,3 @@ private:
 	//SOCKET listenSocket; // the socket used to listen for new connections
 	ServerSharedData sharedData; // data structure used for communication with the worker thread
 };
-
-#endif

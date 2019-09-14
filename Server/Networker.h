@@ -1,5 +1,4 @@
-#ifndef NETWORKER_H
-#define NETWORKER_H
+#pragma once
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 #include <winsock2.h>
 #include <list>
@@ -124,4 +123,3 @@ NetworkerReturnCode Networker::receive(T* buffer, int bufferSize)
 	return NW_OK;
 }
 
-#endif

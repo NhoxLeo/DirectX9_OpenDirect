@@ -1,6 +1,4 @@
-#ifndef NETWORK_COMMUNICATION_DATA_H
-#define NETWORK_COMMUNICATION_DATA_H
-
+#pragma once
 // This file holds enumerations and data types that are required by both, server and client.
 // Objects of these types are being sent over the network between client and server
 
@@ -59,5 +57,3 @@ public:
 		return id < rhs.id;
 	}
 };
-
-#endif

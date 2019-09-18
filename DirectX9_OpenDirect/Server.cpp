@@ -34,7 +34,7 @@ int Server::start(void)
 	{
 		// start a thread that will process clients connecting to the server
 		sharedData.doRun = true;
-		workerThread = thread(ProcessClientsFunctor(), &sharedData);
+		workerThread = thread(ClientCommunicator(), &sharedData);
 
 		// Determine the IP address of the machine the server is running on and display it on the console.
 		// (as the machine may have several IP addresses associated to it, all of them will be displayed and it is up to

@@ -1,17 +1,17 @@
-#include "CommunicateWithServerFunctor.h"
+#include "ServerCommunicator.h"
 
-const long CommunicateWithServerFunctor::TIMEOUT_INTERVAL = 5000;
+const long ServerCommunicator::TIMEOUT_INTERVAL = 5000;
 
-CommunicateWithServerFunctor::CommunicateWithServerFunctor(void)
+ServerCommunicator::ServerCommunicator(void)
 {
 }
 
-CommunicateWithServerFunctor::~CommunicateWithServerFunctor(void)
+ServerCommunicator::~ServerCommunicator(void)
 {
 }
 
 // communicate with the server under the given ip address
-void CommunicateWithServerFunctor::operator()(ClientSharedData* sharedData, string ipAddress)
+void ServerCommunicator::operator()(ClientSharedData* sharedData, string ipAddress)
 {
 
 	if ((networker.setup() == NW_OK) && (networker.connectToServer(ipAddress.c_str(), 8888) == NW_OK) && (networker.setNonBlockingMode(true) == NW_OK))

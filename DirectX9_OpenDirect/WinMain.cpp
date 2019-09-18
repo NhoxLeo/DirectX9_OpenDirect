@@ -186,26 +186,23 @@
 //	return S_OK;
 //}
 //
-//INT WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, INT)
-//{
-//	Application* app = Application::GetInstance();
-//
-//	wchar_t* asd = (wchar_t*)L"Test";
-//
-//	SOCKET sSocket;
-//	HANDLE hRecvEvent;
-//
-//	if (SUCCEEDED(InitializeWinsock(&sSocket, &hRecvEvent)))
-//	{
-//		if (SUCCEEDED(ConnectToServer(sSocket, hRecvEvent)));
-//		app->Initialize(asd, 640, 480, false);
-//		//app->Initialize(L"Universe2D.Sample1", 1280, 720, false);
-//		Director::GetInstance()->SetScene(TestMapScene::Create());
-//
-//		app->Run();
-//		app->Release();
-//	}
-//
-//
-//	
-//}
+////INT WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, INT)
+////{
+////	Application* app = Application::GetInstance();
+////
+////	wchar_t* asd = (wchar_t*)L"Test";
+////
+////	SOCKET sSocket;
+////	HANDLE hRecvEvent;
+////
+////	if (SUCCEEDED(InitializeWinsock(&sSocket, &hRecvEvent)))
+////	{
+////		if (SUCCEEDED(ConnectToServer(sSocket, hRecvEvent)));
+////		app->Initialize(asd, 640, 480, false);
+////		//app->Initialize(L"Universe2D.Sample1", 1280, 720, false);
+////		Director::GetInstance()->SetScene(TestMapScene::Create());
+////
+////		app->Run();
+////		app->Release();
+////	}
+////}

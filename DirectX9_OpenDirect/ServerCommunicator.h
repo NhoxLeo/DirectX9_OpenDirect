@@ -14,15 +14,15 @@ struct SendQueueData
 	DrawingData drawObject;
 };
 
-class CommunicateWithServerFunctor
+class ServerCommunicator
 {
 public:
 	// determines how long the thread will wait for send operations to be answered by an acknowledgement of the Server (in milliseconds)
 	static const long TIMEOUT_INTERVAL;
 
 	void operator()(ClientSharedData* sharedData, string ipAddress);
-	CommunicateWithServerFunctor(void);
-	~CommunicateWithServerFunctor(void);
+	ServerCommunicator(void);
+	~ServerCommunicator(void);
 private:
 	Networker networker;
 	// identifier received from the server

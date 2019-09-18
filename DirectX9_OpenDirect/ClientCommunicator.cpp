@@ -1,11 +1,11 @@
-#include "ProcessClientsFunctor.h"
+#include "ClientCommunicator.h"
 
 // initialize the constants
-const float ProcessClientsFunctor::FLIGHT_HEIGHTS[] = { -6.5f, -1.5f, 2.5f, 7.0f, 11.5f };
-const int ProcessClientsFunctor::MAX_NUMBER_OF_SPACESHIPS = 5;
-const long ProcessClientsFunctor::TIMEOUT_INTERVAL = 5000;
+const float ClientCommunicator::FLIGHT_HEIGHTS[] = { -6.5f, -1.5f, 2.5f, 7.0f, 11.5f };
+const int ClientCommunicator::MAX_NUMBER_OF_SPACESHIPS = 5;
+const long ClientCommunicator::TIMEOUT_INTERVAL = 5000;
 
-ProcessClientsFunctor::ProcessClientsFunctor(void)
+ClientCommunicator::ClientCommunicator(void)
 {
 	// initialize flightTracks
 	for (int i = 0; i < MAX_NUMBER_OF_SPACESHIPS; ++i)
@@ -17,11 +17,11 @@ ProcessClientsFunctor::ProcessClientsFunctor(void)
 	srand(static_cast<unsigned int>(time(NULL)));
 }
 
-ProcessClientsFunctor::~ProcessClientsFunctor(void)
+ClientCommunicator::~ClientCommunicator(void)
 {
 }
 
-void ProcessClientsFunctor::operator()(ServerSharedData* sharedData)
+void ClientCommunicator::operator()(ServerSharedData* sharedData)
 {
 	// Used to trigger initial spawning of space ships. Will be set to true when a client joins if there has previously been no active 
 	// client and will be set to false after spawning is complete. Regular spawning (when ships are destroyed) is handled elsewhere
@@ -477,7 +477,7 @@ void ProcessClientsFunctor::operator()(ServerSharedData* sharedData)
 // Included for convenience and to keep the code of the operator() cleaner.
 // Moves the object specified by the second parameter from the client specified by the first parameter to an appropriate
 // target client.
-void ProcessClientsFunctor::moveObject(Client& client, DrawingData& data)
+void ClientCommunicator::moveObject(Client& client, DrawingData& data)
 {
 	// determine position of the source client
 	unsigned int index = distance(clients.begin(), find(clients.begin(), clients.end(), client));
@@ -536,7 +536,7 @@ void ProcessClientsFunctor::moveObject(Client& client, DrawingData& data)
 // Included for convenience and to keep the code of the operator() cleaner.
 // Destroys the object specified by the second parameter that was destroyed on the screen of the client specified by the first 
 // parameter.
-void ProcessClientsFunctor::destroyObject(Client& client, DrawingData& data)
+void ClientCommunicator::destroyObject(Client& client, DrawingData& data)
 {
 	// check if object was already notified as destroyed (just in case a space ship is hit simultaneously
 	// by two projectiles or some similar very rare occurrence)
@@ -641,7 +641,7 @@ void ProcessClientsFunctor::destroyObject(Client& client, DrawingData& data)
 //		- moving all space ships currently active at that client to adjacent clients
 //		- shutting down the networker of that client
 //		- moving queued actions of the client to adjacent clients
-void ProcessClientsFunctor::shutDownClient(Client& client)
+void ClientCommunicator::shutDownClient(Client& client)
 {
 	if (clients.size() > 1)
 	{
@@ -761,7 +761,7 @@ void ProcessClientsFunctor::shutDownClient(Client& client)
 // acknowledgements for both sending operations.
 // Returns true if everything went fine (Acks obtained for both send operations: command and data)
 // Returns false if anything goes wrong (including network errors, timeout while waiting for ack,...)
-bool ProcessClientsFunctor::sendToClient(Client& client, Action& action)
+bool ClientCommunicator::sendToClient(Client& client, Action& action)
 {
 	ClientMessage cMessage = None;
 
@@ -831,14 +831,14 @@ bool ProcessClientsFunctor::sendToClient(Client& client, Action& action)
 
 
 // return an id used to identify clients
-int ProcessClientsFunctor::getClientId()
+int ClientCommunicator::getClientId()
 {
 	static int id = 0;
 	return id++;
 }
 
 // return an id used to identify created space ships
-int ProcessClientsFunctor::getSpaceShipId()
+int ClientCommunicator::getSpaceShipId()
 {
 	static int id = 0;
 	// as space ships are destroyed before new ones are created, it is ok to reset the id values after some time
@@ -850,7 +850,7 @@ int ProcessClientsFunctor::getSpaceShipId()
 }
 
 // fill the passed drawing data structure with appropriate initial values
-void ProcessClientsFunctor::createDrawingData(DrawableObject objectType, DrawingData& data)
+void ClientCommunicator::createDrawingData(DrawableObject objectType, DrawingData& data)
 {
 	switch (objectType)
 	{

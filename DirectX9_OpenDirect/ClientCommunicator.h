@@ -45,7 +45,7 @@ public:
 	}
 };
 
-class ProcessClientsFunctor
+class ClientCommunicator
 {
 public:
 	static const int MAX_NUMBER_OF_SPACESHIPS; // this many objects of type SpaceShip can be deployed
@@ -56,8 +56,8 @@ public:
 
 	void operator()(ServerSharedData* sharedData);
 
-	ProcessClientsFunctor(void);
-	~ProcessClientsFunctor(void);
+	ClientCommunicator(void);
+	~ClientCommunicator(void);
 private:
 	// stores all active clients
 	vector<Client> clients;

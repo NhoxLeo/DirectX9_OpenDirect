@@ -17,7 +17,7 @@
 #include <sstream>
 
 #include "ClientSharedData.h"
-#include "CommunicateWithServerFunctor.h"
+#include "ServerCommunicator.h"
 #include "Server.h"
 
 //#pragma comment(lib,"ws2_32.lib") 	// Use this library whilst linking - contains the Winsock2 implementation.
@@ -1552,7 +1552,6 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE, LPSTR, int)
 	if (option == "server")
 	{
 		BOOL ConsoleCtrlHandler(DWORD eventType);
-
 		// create a server object
 		Server server;
 		// start the server and check if startup succeeded
@@ -1566,7 +1565,6 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE, LPSTR, int)
 				server.run();
 			}
 		}
-
 		// the server object's destructor will be called automatically
 		return 0;
 	}
@@ -1635,7 +1633,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE, LPSTR, int)
 				sharedData.connectionEstablished = false;
 
 				// create a worker thread that will create a connection to the server and communicate with it
-				thread workerThread = thread(CommunicateWithServerFunctor(), &sharedData, ipAddress.c_str());
+				thread workerThread = thread(ServerCommunicator(), &sharedData, ipAddress.c_str());
 
 				// setup some additional stuff (while worker thread is connecting)
 				SetupFont();
@@ -1673,8 +1671,6 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE, LPSTR, int)
 				}
 				// wait for the worker thread to finish
 				workerThread.join();
-
-
 			}
 		}
 		cout << "\nClient terminated";

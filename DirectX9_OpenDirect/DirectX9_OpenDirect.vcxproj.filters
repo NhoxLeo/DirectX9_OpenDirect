@@ -113,9 +113,6 @@
     <ClInclude Include="Networker.h">
       <Filter>Framework\Header Files\Network</Filter>
     </ClInclude>
-    <ClInclude Include="CommunicateWithServerFunctor.h">
-      <Filter>Framework\Header Files\Network</Filter>
-    </ClInclude>
     <ClInclude Include="NetworkCommunicationData.h">
       <Filter>Framework\Header Files\Network</Filter>
     </ClInclude>
@@ -125,10 +122,13 @@
     <ClInclude Include="ServerSharedData.h">
       <Filter>Framework\Header Files\Network</Filter>
     </ClInclude>
-    <ClInclude Include="ProcessClientsFunctor.h">
+    <ClInclude Include="Server.h">
       <Filter>Framework\Header Files\Network</Filter>
     </ClInclude>
-    <ClInclude Include="Server.h">
+    <ClInclude Include="ClientCommunicator.h">
+      <Filter>Framework\Header Files\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="ServerCommunicator.h">
       <Filter>Framework\Header Files\Network</Filter>
     </ClInclude>
   </ItemGroup>
@@ -196,17 +196,17 @@
     <ClCompile Include="Networker.cpp">
       <Filter>Framework\Source Files\Network</Filter>
     </ClCompile>
-    <ClCompile Include="CommunicateWithServerFunctor.cpp">
-      <Filter>Framework\Source Files\Network</Filter>
-    </ClCompile>
-    <ClCompile Include="client.cpp">
-      <Filter>Framework</Filter>
-    </ClCompile>
-    <ClCompile Include="ProcessClientsFunctor.cpp">
-      <Filter>Framework\Source Files\Network</Filter>
-    </ClCompile>
     <ClCompile Include="Server.cpp">
       <Filter>Framework\Source Files\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="ClientCommunicator.cpp">
+      <Filter>Framework\Source Files\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="ServerCommunicator.cpp">
+      <Filter>Framework\Source Files\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>Framework</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

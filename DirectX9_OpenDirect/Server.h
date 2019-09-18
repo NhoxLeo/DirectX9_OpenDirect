@@ -5,7 +5,7 @@
 #include <thread>
 #include <condition_variable>
 
-#include "ProcessClientsFunctor.h"
+#include "ClientCommunicator.h"
 #include "ServerSharedData.h"
 
 #pragma comment(lib, "ws2_32.lib")

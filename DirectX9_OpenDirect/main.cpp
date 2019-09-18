@@ -19,6 +19,8 @@
 #include "ClientSharedData.h"
 #include "ServerCommunicator.h"
 #include "Server.h"
+#include "Precompiled.h"
+#include "TestMapScene.h"
 
 //#pragma comment(lib,"ws2_32.lib") 	// Use this library whilst linking - contains the Winsock2 implementation.
 
@@ -1594,6 +1596,14 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE, LPSTR, int)
 			}
 		} while (!isValidAddress);
 		cout << "\nConnecting to server...";
+
+		//Application* app = Application::GetInstance();
+		//wchar_t* asd = (wchar_t*)L"Test";
+		//app->Initialize(asd, 640, 480, false);
+		////app->Initialize(L"Universe2D.Sample1", 1280, 720, false);
+		//Director::GetInstance()->SetScene(TestMapScene::Create());
+		//app->Run();
+		//app->Release();
 
 		// Register the window class
 		WNDCLASSEX wc = { sizeof(WNDCLASSEX), CS_CLASSDC, MsgProc, 0L, 0L,

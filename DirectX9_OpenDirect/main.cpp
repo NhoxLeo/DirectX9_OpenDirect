@@ -1120,7 +1120,7 @@ void Render()
 					RenderArrow();
 					break;
 				case Background:
-					RenderBackground();
+					//RenderBackground();
 					break;
 				}
 
@@ -1621,8 +1621,9 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE, LPSTR, int)
 		int vRes = workArea.bottom - workArea.top;
 		// Create the application's window (set to size of work area)
 		HWND hWnd = CreateWindow(L"Networking Assignment", L"Networking Assignment",
-			WS_OVERLAPPEDWINDOW, 0, 0, hRes, vRes,
+			WS_OVERLAPPEDWINDOW, 0, 0, 800, 600,
 			GetDesktopWindow(), NULL, wc.hInstance, NULL);
+		ShowWindow(hWnd, SW_SHOWDEFAULT);
 		// Initialize Direct3D
 		if (SUCCEEDED(SetupD3D(hWnd)))
 		{

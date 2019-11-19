@@ -12,6 +12,7 @@ private:
 	//Map* m_Map;
 	Object* m_UI;
 	bool isServer;
+	Sprite* entity;
 
 	Networker networker;
 

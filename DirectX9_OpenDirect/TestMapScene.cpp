@@ -35,10 +35,9 @@ void TestMapScene::InitializeUI() {
 
 	m_UI = Object::Create();
 	m_UI->SetZOrder(1000);
-	//AnimationSprite* animation = new AnimationSprite(L"Resources\\animations\\cap1.png", 1, 11, 5.0f);
-	//Sprite* animation = Sprite::Create(L"Resources\\player.png");
-	//animation->SetAnchorPoint(0.f, 0.f);
-	//animation->SetPosition(0, 0);
+	entity = Sprite::Create(L"Resources\\player.png");
+	entity->SetAnchorPoint(0.f, 0.f);
+	entity->SetPosition(0, 0);
 	m_UI->SetPosition(0, 200);
 	//Rigidbody*a = new Rigidbody();
 	//a->SetVelocity(10.f,10.f);

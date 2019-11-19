@@ -21,7 +21,6 @@ bool Application::Initialize(wchar_t* title, int width, int height, bool fullScr
 
 	if (Renderer::GetInstance()->Initialize(m_hWnd, width, height, fullScreen) == false) return false;
 	if (Director::GetInstance()->Initialize() == false) return false;
-	//CollisionManager::GetInstance()->Initialize();
 
 	return true;
 }
@@ -68,7 +67,6 @@ bool Application::Run()
 			Input::GetInstance()->Update();
 			Director::GetInstance()->Update(deltaTime);
 			PhysicsManager::GetInstance()->Update(deltaTime);
-			//CollisionManager::GetInstance()->Update(deltaTime);
 
 			// Render
 			Renderer::GetInstance()->Begin();
@@ -131,7 +129,7 @@ bool Application::_CreateWindow(wchar_t* title, int width, int height, bool full
 	}
 	else
 	{
-		style = CS_HREDRAW | CS_VREDRAW;
+		style = CS_HREDRAW | CS_VREDRAW | WS_OVERLAPPEDWINDOW;
 
 		RECT rect;
 		SetRect(&rect, 0, 0, width, height);

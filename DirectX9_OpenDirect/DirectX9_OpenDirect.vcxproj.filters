@@ -71,9 +71,6 @@
     <ClInclude Include="Texture.h">
       <Filter>Framework\Header Files\Components</Filter>
     </ClInclude>
-    <ClInclude Include="Singleton.h">
-      <Filter>Framework\Header Files\Others</Filter>
-    </ClInclude>
     <ClInclude Include="TypeDefined.h">
       <Filter>Framework\Header Files\Others</Filter>
     </ClInclude>
@@ -84,9 +81,6 @@
       <Filter>Framework\Header Files\System</Filter>
     </ClInclude>
     <ClInclude Include="Director.h">
-      <Filter>Framework\Header Files\System</Filter>
-    </ClInclude>
-    <ClInclude Include="Precompiled.h">
       <Filter>Framework\Header Files\System</Filter>
     </ClInclude>
     <ClInclude Include="ResourceManager.h">
@@ -107,14 +101,20 @@
     <ClInclude Include="Rigidbody.h">
       <Filter>Framework\Header Files\Components</Filter>
     </ClInclude>
-    <ClInclude Include="resource.h">
-      <Filter>Framework\Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Networker.h">
       <Filter>Framework\Header Files\Network</Filter>
     </ClInclude>
     <ClInclude Include="NetworkCommunicationData.h">
       <Filter>Framework\Header Files\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Framework\Header Files\Others</Filter>
+    </ClInclude>
+    <ClInclude Include="Singleton.h">
+      <Filter>Framework\Header Files\System</Filter>
+    </ClInclude>
+    <ClInclude Include="Precompiled.h">
+      <Filter>Framework\Header Files\Others</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

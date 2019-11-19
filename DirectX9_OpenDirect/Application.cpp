@@ -131,7 +131,7 @@ bool Application::_CreateWindow(wchar_t* title, int width, int height, bool full
 	}
 	else
 	{
-		style = WS_POPUP;
+		style = CS_HREDRAW | CS_VREDRAW;
 
 		RECT rect;
 		SetRect(&rect, 0, 0, width, height);

@@ -116,21 +116,6 @@
     <ClInclude Include="NetworkCommunicationData.h">
       <Filter>Framework\Header Files\Network</Filter>
     </ClInclude>
-    <ClInclude Include="ClientSharedData.h">
-      <Filter>Framework\Header Files\Network</Filter>
-    </ClInclude>
-    <ClInclude Include="ServerSharedData.h">
-      <Filter>Framework\Header Files\Network</Filter>
-    </ClInclude>
-    <ClInclude Include="Server.h">
-      <Filter>Framework\Header Files\Network</Filter>
-    </ClInclude>
-    <ClInclude Include="ClientCommunicator.h">
-      <Filter>Framework\Header Files\Network</Filter>
-    </ClInclude>
-    <ClInclude Include="ServerCommunicator.h">
-      <Filter>Framework\Header Files\Network</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="WinMain.cpp">
@@ -194,15 +179,6 @@
       <Filter>Framework\Source Files\Components</Filter>
     </ClCompile>
     <ClCompile Include="Networker.cpp">
-      <Filter>Framework\Source Files\Network</Filter>
-    </ClCompile>
-    <ClCompile Include="Server.cpp">
-      <Filter>Framework\Source Files\Network</Filter>
-    </ClCompile>
-    <ClCompile Include="ClientCommunicator.cpp">
-      <Filter>Framework\Source Files\Network</Filter>
-    </ClCompile>
-    <ClCompile Include="ServerCommunicator.cpp">
       <Filter>Framework\Source Files\Network</Filter>
     </ClCompile>
     <ClCompile Include="main.cpp">

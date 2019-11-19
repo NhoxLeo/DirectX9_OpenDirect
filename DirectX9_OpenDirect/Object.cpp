@@ -46,7 +46,7 @@ void Object::Update(float deltaTime) {
 */
 	for (int i = m_Children.size() - 1; i >= 0; --i) {
 		m_Children[i]->Update(deltaTime);
-		printf("%d\n", i);
+		//printf("%d\n", i);
 	}
 }
 void Object::Render() {

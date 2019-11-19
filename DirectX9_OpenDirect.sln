@@ -5,8 +5,6 @@ VisualStudioVersion = 15.0.28307.779
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DirectX9_OpenDirect", "DirectX9_OpenDirect\DirectX9_OpenDirect.vcxproj", "{B1984E7E-81B2-4BC8-921E-73EA41163675}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ngsserver", "ngsserver\ngsserver.vcxproj", "{C63A3EFF-9944-4712-8EF7-401949C6ECF5}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -23,12 +21,6 @@ Global
 		{B1984E7E-81B2-4BC8-921E-73EA41163675}.Release|x64.Build.0 = Release|x64
 		{B1984E7E-81B2-4BC8-921E-73EA41163675}.Release|x86.ActiveCfg = Release|Win32
 		{B1984E7E-81B2-4BC8-921E-73EA41163675}.Release|x86.Build.0 = Release|Win32
-		{C63A3EFF-9944-4712-8EF7-401949C6ECF5}.Debug|x64.ActiveCfg = Debug|Win32
-		{C63A3EFF-9944-4712-8EF7-401949C6ECF5}.Debug|x86.ActiveCfg = Debug|Win32
-		{C63A3EFF-9944-4712-8EF7-401949C6ECF5}.Debug|x86.Build.0 = Debug|Win32
-		{C63A3EFF-9944-4712-8EF7-401949C6ECF5}.Release|x64.ActiveCfg = Release|Win32
-		{C63A3EFF-9944-4712-8EF7-401949C6ECF5}.Release|x86.ActiveCfg = Release|Win32
-		{C63A3EFF-9944-4712-8EF7-401949C6ECF5}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

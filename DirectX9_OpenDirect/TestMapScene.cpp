@@ -263,63 +263,58 @@ void TestMapScene::ServerUpdate()
 		command = DoNothing;
 		message = None;
 		// create new clients if the main thread added some new networkers to the queue
+
+		// if new networkers connected to the server, create a corresponding client data structure and add it to the vector of active clients
+		lock_guard<std::mutex> lock(serverSharedData.newSocketsMutex);
+		while (!(serverSharedData.newNetworkers.empty()))
 		{
-			// if new networkers connected to the server, create a corresponding client data structure and add it to the vector of active clients
-			lock_guard<std::mutex> lock(serverSharedData.newSocketsMutex);
-			while (!(serverSharedData.newNetworkers.empty()))
+			// create a Client data structure for the new client
+			Clients client;
+			client.id = id++;
+			client.networker = serverSharedData.newNetworkers.front();
+			client.dataReady = false;
+			client.lastMessageProcessed = true;
+
+			// send the id to the new client and make sure it is received
+			NetworkerReturnCode sendIdResult = NW_NOTHING_TO_SEND;
+			do { sendIdResult = client.networker.send<int>(&client.id, sizeof(int)); } while (sendIdResult == NW_NOTHING_TO_SEND);
+
+			if (sendIdResult == NW_OK)
 			{
-				// create a Client data structure for the new client
-				Clients client;
-				client.id = id++;
-				client.networker = serverSharedData.newNetworkers.front();
-				client.dataReady = false;
-				client.lastMessageProcessed = true;
-
-				// send the id to the new client and make sure it is received
-				NetworkerReturnCode sendIdResult = NW_NOTHING_TO_SEND;
-				do { sendIdResult = client.networker.send<int>(&client.id, sizeof(int)); } while (sendIdResult == NW_NOTHING_TO_SEND);
-
-				if (sendIdResult == NW_OK)
+				// id was sent successfully, now wait for the Ack from the client
+				NetworkerReturnCode selectResult = client.networker.selectRead(TIMEOUT_INTERVAL);
+				switch (selectResult)
 				{
-					// id was sent successfully, now wait for the Ack from the client
-					NetworkerReturnCode selectResult = client.networker.selectRead(TIMEOUT_INTERVAL);
-					switch (selectResult)
+				case NW_OK:
+				{
+					// receive the client's acknowledgement
+					message = None;
+					NetworkerReturnCode recvAckResult = client.networker.receive<ClientMessage>(&message, sizeof(ClientMessage));
+					if (recvAckResult == NW_OK && message == ClientAck)
 					{
-					case NW_OK:
+						// the client received the id and answered with an acknowledgement . add to active clients
+						clients.push_back(client);
+					}
+					else
 					{
-						// receive the client's acknowledgement
-						message = None;
-						NetworkerReturnCode recvAckResult = client.networker.receive<ClientMessage>(&message, sizeof(ClientMessage));
-						if (recvAckResult == NW_OK && message == ClientAck)
-						{
-							// the client received the id and answered with an acknowledgement . add to active clients
-							clients.push_back(client);
-						}
-						else
-						{
-							// An error occurred, shut down the client's networker. This will lead to the client terminating itself
-							client.networker.shutDown();
-						}
-						break;
-					}
-					case NW_TIMEOUT:
-						// Ack wasn't received in time, terminate client
+						// An error occurred, shut down the client's networker. This will lead to the client terminating itself
 						client.networker.shutDown();
-						break;
-					case NW_ERROR:
-						// an error occurred, terminate the client
-						client.networker.shutDown();
-						break;
 					}
+					break;
 				}
-				else
-				{
+				case NW_TIMEOUT:
+					// Ack wasn't received in time, terminate client
+					client.networker.shutDown();
+					break;
+				case NW_ERROR:
 					// an error occurred, terminate the client
 					client.networker.shutDown();
+					break;
 				}
-				// either way, remove the client from the waiting queue
-				serverSharedData.newNetworkers.pop();
 			}
+			else client.networker.shutDown();
+			// either way, remove the client from the waiting queue
+			serverSharedData.newNetworkers.pop();
 		}
 
 		//Interacting with clients					
@@ -329,13 +324,12 @@ void TestMapScene::ServerUpdate()
 			vector<Clients>::iterator it = clients.begin();
 			NetworkerReturnCode sendResultData = NW_NOTHING_TO_SEND;
 			command = Draw;
-			DrawingData drawData;
-			drawData.id = 10;
+			DrawingData drawData, recvData;
+			drawData.id = (*it).id;
 			do { sendResultData = (*it).networker.send<DrawingData>(&(drawData), sizeof(DrawingData)); } while (sendResultData == NW_NOTHING_TO_SEND);
 			NetworkerReturnCode recvMsgResult = NW_NOTHING_TO_RECEIVE;
-			do { recvMsgResult = (*it).networker.receive<ClientMessage>(&message, sizeof(ClientMessage)); } while (recvMsgResult == NW_NOTHING_TO_RECEIVE);
-
-
+			do { recvMsgResult = (*it).networker.receive<DrawingData>(&recvData, sizeof(DrawingData)); } while (recvMsgResult == NW_NOTHING_TO_RECEIVE);
+			cout << recvData.id;
 		}
 	}
 }
@@ -377,17 +371,18 @@ void TestMapScene::ClientUpdate()
 
 		// check if there is something to receive from the server
 
-		DrawingData rcvData;
+		DrawingData rcvData, sendData;
+		sendData.id = 5;
 		// wait for the server to send the object that should be drawn
 		NetworkerReturnCode selectResult = networker.selectRead(TIMEOUT_INTERVAL);
 		if (selectResult == NW_OK)
 		{
 			NetworkerReturnCode recvResult = networker.receive<DrawingData>(&rcvData, sizeof(DrawingData));
-			cout << rcvData.id << "\n";
+			cout << rcvData.id;
 		}
 		NetworkerReturnCode sendMessageResult = NW_NOTHING_TO_SEND;
-		message = ClientAck;
-		do { sendMessageResult = networker.send<ClientMessage>(&message, sizeof(ClientMessage)); } while (sendMessageResult == NW_NOTHING_TO_SEND);
+		//message = ClientAck;
+		do { sendMessageResult = networker.send<DrawingData>(&sendData, sizeof(DrawingData)); } while (sendMessageResult == NW_NOTHING_TO_SEND);
 	}
 }
 void TestMapScene::ServerShutdown()

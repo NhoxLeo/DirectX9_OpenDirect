@@ -122,6 +122,18 @@
     <ClInclude Include="Server.h">
       <Filter>Framework\Header Files\Network</Filter>
     </ClInclude>
+    <ClInclude Include="NetworkEntity.h">
+      <Filter>Framework\Header Files\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="NetworkClient.h">
+      <Filter>Framework\Header Files\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="Data.h">
+      <Filter>Framework\Header Files\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="Tilemap.h">
+      <Filter>Framework\Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TestMapScene.cpp">
@@ -195,6 +207,15 @@
     </ClCompile>
     <ClCompile Include="Server.cpp">
       <Filter>Framework\Source Files\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="NetworkEntity.cpp">
+      <Filter>Framework\Source Files\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="NetworkClient.cpp">
+      <Filter>Framework\Source Files\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="Tilemap.cpp">
+      <Filter>Framework\Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

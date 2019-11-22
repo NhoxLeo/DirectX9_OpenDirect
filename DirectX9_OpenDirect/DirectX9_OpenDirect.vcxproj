@@ -148,9 +148,12 @@
     <ClInclude Include="Client.h" />
     <ClInclude Include="Collider.h" />
     <ClInclude Include="CollisionManager.h" />
+    <ClInclude Include="Data.h" />
     <ClInclude Include="Director.h" />
     <ClInclude Include="Input.h" />
+    <ClInclude Include="NetworkClient.h" />
     <ClInclude Include="NetworkCommunicationData.h" />
+    <ClInclude Include="NetworkEntity.h" />
     <ClInclude Include="Networker.h" />
     <ClInclude Include="Object.h" />
     <ClInclude Include="PhysicsManager.h" />
@@ -166,6 +169,7 @@
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="TestMapScene.h" />
     <ClInclude Include="Texture.h" />
+    <ClInclude Include="Tilemap.h" />
     <ClInclude Include="TypeDefined.h" />
   </ItemGroup>
   <ItemGroup>
@@ -180,6 +184,8 @@
     <ClCompile Include="CollisionManager.cpp" />
     <ClCompile Include="Director.cpp" />
     <ClCompile Include="Input.cpp" />
+    <ClCompile Include="NetworkClient.cpp" />
+    <ClCompile Include="NetworkEntity.cpp" />
     <ClCompile Include="Networker.cpp" />
     <ClCompile Include="Object.cpp" />
     <ClCompile Include="PhysicsManager.cpp" />
@@ -192,6 +198,7 @@
     <ClCompile Include="Sprite.cpp" />
     <ClCompile Include="TestMapScene.cpp" />
     <ClCompile Include="Texture.cpp" />
+    <ClCompile Include="Tilemap.cpp" />
     <ClCompile Include="WinMain.cpp" />
   </ItemGroup>
   <ItemGroup>

@@ -2,8 +2,9 @@
 
 #define SAFE_DELETE(x) { if(x) { delete x; x = NULL; } }
 #define SAFE_RELEASE(x) { if(x) { x->Release(); x = NULL; } }
-
-#define WIN32_LEAN_AND_MEAN
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
+#define WIN32_LEAN_AND_MEAN         // Get rid of rarely-used stuff from Windows headers
+#define DIRECTINPUT_VERSION 0x800   // Tell DirectInput what version to use
 
 #pragma comment(lib, "d3d9.lib")
 #pragma comment(lib,"d3dx9.lib")
@@ -19,6 +20,7 @@
 #include <queue>
 #include <unordered_map>
 #include <functional>
+#include <iostream>
 
 #include "Singleton.h"
 #include "Application.h"
@@ -41,8 +43,9 @@
 #include "CollisionManager.h"
 #include "Rigidbody.h"
 #include "PhysicsManager.h"
-//#include "Networker.h"
 #include "resources.h"
+#include "NetworkEntity.h"
+//#include "Networker.h"
 //#include "Label.h"
 //#include "AnimationGroup.h"
 //#include "ProgressBar.h"

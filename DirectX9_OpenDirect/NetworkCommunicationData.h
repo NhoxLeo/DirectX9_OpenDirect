@@ -4,30 +4,25 @@
 #include <mutex>
 #include <queue>
 #include <condition_variable>
-// This file holds enumerations and data types that are required by both, server and client.
-// Objects of these types are being sent over the network between client and server
 
-// commands that the server will send to the connected clients
+
+
 enum ServerCommand
 {
-	DoNothing, ServerAck, Send, Draw, Destroy, Disconnect
+	DoNothing, ServerAck, Send, Draw, Destroy, Disconnect, RequestInput
 };
-// messages sent by the client to notify the server of certain events
 enum ClientMessage
 {
-	None, ClientAck, DataReady, ObjectDestroyed, ObjectMoved, Disconnected
+	None, Input, ClientAck, DataReady, ObjectDestroyed, ObjectMoved, Disconnected
 };
-// used to identify objects that can be drawn by the client (client has a vertex buffer and render method for each type of object)
 enum DrawableObject
 {
 	SpaceShip, Arrow, Projectile, Background
 };
-// holds all information required by the client to draw an object of a specific type
-// (currently there are more variables in it than actually needed, i.e. some of the rotation variables, to allow for easy 
-// extension later on) 
 struct DrawingData
 {
 public:
+	int count;
 	// at the moment this value is only used to identify objects with type SpaceShip and objects of other types are simply assigned an id of -1
 	int id;
 	// The origin value is used to allow a client to distinguish between objects created by himself and objects created by the server 
@@ -36,15 +31,9 @@ public:
 	int origin;
 	// Type of the object to be drawn
 	DrawableObject object;
-
-	// current position of the object in world coordinates
-	float posX, posY, posZ;
-	// current rotation of the object in degrees
-	float rotX, rotY, rotZ;
-	// size of the object in world space (fix values, are not calculated/changed)
-	float sizeX, sizeY, sizeZ;
 	// translation that is applied every frame
 	float moveX, moveY, moveZ;
+	float posX, posY, posZ;
 	// this flag is set when the object reaches the end of the screen and is sent to the next client (avoids repeated sending)
 	bool wasSent;
 
@@ -107,7 +96,7 @@ public:
 	mutex connectionEstablishedMutex;
 	condition_variable connectionEstablishedCondition;
 };
-struct Clients
+struct User
 {
 public:
 	// an identifier for the client (not really used yet, but would be required for things like scoring)
@@ -125,7 +114,7 @@ public:
 	// Stores actions to be executed on the client when it is his turn to be processed
 	queue<Action> actions;
 
-	bool operator==(const Clients& rhs) const
+	bool operator==(const User& rhs) const
 	{
 		return id == rhs.id;
 	}

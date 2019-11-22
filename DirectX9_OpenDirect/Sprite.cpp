@@ -55,9 +55,6 @@ void Sprite::Render() {
 	auto sprite = Renderer::GetInstance()->GetSprite();
 	sprite->Begin(D3DXSPRITE_ALPHABLEND);
 	sprite->SetTransform(&m_Matrix);
-	sprite->Draw(
-		m_Texture->GetD3DTexture(),
-		&m_SourceRect, &center, NULL,
-		D3DCOLOR_ARGB(255 - m_ColorA, 255 - m_ColorR, 255 - m_ColorG, 255 - m_ColorB));
+	sprite->Draw(m_Texture->GetD3DTexture(), &m_SourceRect, &center, NULL, D3DCOLOR_ARGB(255 - m_ColorA, 255 - m_ColorR, 255 - m_ColorG, 255 - m_ColorB));
 	sprite->End();
 }

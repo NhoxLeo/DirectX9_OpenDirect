@@ -4,6 +4,10 @@
 #include "stdafx.h"
 #include "NetworkCommunicationData.h"
 #include <iostream>
+#include "Server.h"
+#include "Client.h"
+#include "NetworkClient.h"
+#include "Tilemap.h"
 
 using namespace std;
 
@@ -14,17 +18,11 @@ private:
 	bool isServer;
 	Sprite* entity;
 
-	Networker networker;
+	Server* server;
+	Client* client;
 
-	////Server
-	vector<Clients> clients;
-	ServerSharedData serverSharedData;
-
-	////Client
-	ClientSharedData clientSharedData;
-	string ipAddress = "localhost";
-	queue<SendQueueData> sendQueue;
-	int id = 0;
+	NetworkClient* networkClient;
+	Tilemap* tilemap;
 
 public:
 	TestMapScene();
@@ -46,18 +44,6 @@ public:
 	//bool sendToClient(Clients & client, Action & action);
 
 	//void shutDownClient(Clients & client);
-
-	bool ServerInit();
-
-	bool CLientInit();
-
-	void ServerUpdate();
-
-	void ClientUpdate();
-
-	void ServerShutdown();
-
-	void ClientShutdown();
 
 public:
 	void Render() override;

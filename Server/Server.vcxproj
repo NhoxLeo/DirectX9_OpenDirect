@@ -126,10 +126,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ngsserver.cpp" />
+    <ClCompile Include="Object.cpp" />
     <ClCompile Include="user.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CollisionManager.h" />
     <ClInclude Include="Data.h" />
+    <ClInclude Include="Object.h" />
     <ClInclude Include="Singleton.h" />
     <ClInclude Include="user.h" />
   </ItemGroup>

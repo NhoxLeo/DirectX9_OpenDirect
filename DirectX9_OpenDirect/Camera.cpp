@@ -13,6 +13,7 @@ Camera::~Camera() {
 Camera* Camera::Create(Scene* scene) {
 	auto camera = new (std::nothrow) Camera();
 	if (camera && camera->InitializeWithScene(scene)) {
+		camera->m_Name = "Camera";
 		return camera;
 	}
 

@@ -16,7 +16,7 @@ bool PhysicsManager::Update(float deltaTime)
 {
 	for (size_t i = 0; i < rigidbodies->size(); i++)
 	{
-		rigidbodies->at(i)->SetVelocity(0.0f, 9.81f);
+		//rigidbodies->at(i)->SetVelocity(0.0f, 9.81f);
 	}
 	return true;
 }

@@ -3,6 +3,7 @@
 
 // Include files required to compile this header
 #include <winsock2.h>
+#include "Object.h"
 
 enum EndWaitResult
 {
@@ -11,7 +12,7 @@ enum EndWaitResult
 	EWR_TIMEOUT,
 };
 
-class User
+class User : public Object
 {
 public:
 
@@ -31,7 +32,11 @@ public:
 	int SendPacket(const CHAR * pBuffer, int length);
 	int RecvPacket(char * pBuffer, int length);
 
-
+	float vPosition[3];
+	float vRotation[3];
+	float vScale[3];
+	float vSize[3];
+	float vVelocity[3];
 protected:
 
 	BOOL m_bConnected;

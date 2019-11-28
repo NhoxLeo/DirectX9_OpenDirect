@@ -1,12 +1,53 @@
 #pragma once
-#include "stdafx.h"
+#include "Object.h"
+#include <queue>
 
+template<class T>
+class Singleton
+{
+private:
+	static T* instance;
+
+public:
+	Singleton()
+	{
+	}
+	virtual ~Singleton()
+	{
+		if (instance)
+			delete instance;
+	}
+
+	static T* GetInstance()
+	{
+		if (instance == nullptr)
+			instance = new T();
+
+		return instance;
+	}
+};
+
+template<class T>
+T* Singleton<T>::instance = nullptr;
+
+
+struct Box
+{
+	// position of top-left corner
+	float x, y;
+
+	// dimensions
+	float w, h;
+
+	// velocity
+	float vx, vy;
+};
 class Object;
 class CollisionManager : public Singleton<CollisionManager>
 {
 public:
-	CollisionManager();
-	~CollisionManager();
+	CollisionManager() {};
+	~CollisionManager() {};
 
 	Box GetSweptBroadphaseBox(Box b)
 	{
@@ -118,5 +159,33 @@ public:
 			return entryTime;
 		}
 	}
-	float CheckSweptAABB(Object* obj1, Object* obj2, float& normalx, float& normaly);
+	float CheckSweptAABB(Object* obj1, Object* obj2, float& normalx, float& normaly)
+	{
+		Box* b1 = new Box();
+		Box* b2 = new Box();
+
+		b1->x = obj1->position.x - obj1->size.x / 2;
+		b1->y = obj1->position.y - obj1->size.y / 2;
+		b1->w = obj1->size.x;
+		b1->h = obj1->size.y;
+
+		b2->x = obj2->position.x - obj2->size.x / 2;
+		b2->y = obj2->position.y - obj2->size.y / 2;
+		b2->w = obj2->size.x;
+		b2->h = obj2->size.y;
+
+		b1->vx = obj1->velocity.x;
+		b1->vy = obj1->velocity.y;
+
+		b2->vx = obj2->velocity.x;
+		b2->vy = obj2->velocity.y;
+
+		Box boxI = GetSweptBroadphaseBox(*b1);
+		Box boxII = GetSweptBroadphaseBox(*b2);
+
+		float result = (AABBCheck(boxI, boxII)) ? SweptAABB(*b1, *b2, normalx, normaly) : 1;
+		delete b1;
+		delete b2;
+		return result;
+	}
 };

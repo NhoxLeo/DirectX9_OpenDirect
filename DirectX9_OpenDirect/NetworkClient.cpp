@@ -4,16 +4,22 @@
 
 NetworkClient::NetworkClient()
 {
-	if (InitializeWinsock(&sSocket, &hRecvEvent) && ConnectToServer(sSocket, hRecvEvent));
+	ipAddress = "127.0.0.1";
+	if (InitializeWinsock(&sSocket, &hRecvEvent) && ConnectToServer(ipAddress, sSocket, hRecvEvent));
 	else cout << "failed";
 	entities = new vector<NetworkEntity*>();
 }
-
-
+NetworkClient::NetworkClient(std::string _ipAddress)
+{
+	entities = new vector<NetworkEntity*>();
+	ipAddress = _ipAddress;
+	if (InitializeWinsock(&sSocket, &hRecvEvent) && ConnectToServer(_ipAddress, sSocket, hRecvEvent));
+	else cout << "failed";
+}
 NetworkClient::~NetworkClient()
 {
+	DisconnectFromServer(sSocket);
 }
-
 void NetworkClient::Update(float deltaTime)
 {
 	int x = 0, y = 0;
@@ -25,21 +31,17 @@ void NetworkClient::Update(float deltaTime)
 	Object::Update(deltaTime);
 	UpdatePlayerMessage upm;
 	upm.dwPlayerID = 0;
-	upm.fVelocity[0] = GetTickCount();
-	upm.fVelocity[1] = x;
-	upm.fVelocity[2] = y;
-	upm.fPosition[0] = player.vPosition.x;
-	upm.fPosition[1] = player.vPosition.y;
-	upm.fPosition[2] = player.vPosition.z;
-	upm.dwState = player.dwState;
-	upm.fYaw = player.fTargetPlayerYaw;
+	upm.fVelocity[0] = x;
+	upm.fVelocity[1] = y;
+	upm.fVelocity[2] = 0;
+	upm.fSize[0] = this->GetSize().x;
+	upm.fSize[1] = this->GetSize().y;
 
 	// Send off the packet
 	int a = send(sSocket, (CHAR*)&upm, sizeof(upm), 0);
 
 	// Update the messages from the server
 	ProcessNetworkMessages(players, sSocket, hRecvEvent);
-
 }
 
 bool NetworkClient::InitializeWinsock(SOCKET * pSocket, HANDLE * pRecvEvent)
@@ -70,15 +72,13 @@ bool NetworkClient::InitializeWinsock(SOCKET * pSocket, HANDLE * pRecvEvent)
 	// Success
 	return true;
 }
-bool NetworkClient::ConnectToServer(SOCKET sSocket, HANDLE hRecvEvent)
+bool NetworkClient::ConnectToServer(std::string _ipAddress, SOCKET sSocket, HANDLE hRecvEvent)
 {
 	SOCKADDR_IN addr;
 	ZeroMemory(&addr, sizeof(addr));
 	addr.sin_family = AF_INET;
 	addr.sin_port = htons(SERVER_COMM_PORT);
-	std::string ip = "127.0.0.1";
-	//std::string ip = " 172.17.250.209";
-	addr.sin_addr.s_addr = inet_addr(ip.c_str());
+	addr.sin_addr.s_addr = inet_addr(_ipAddress.c_str());
 
 	// Send the log on message
 	LogOnMessage packet;
@@ -151,71 +151,51 @@ bool NetworkClient::ProcessPacket(OtherPlayer * pPlayers, const CHAR * pBuffer, 
 }
 bool NetworkClient::UpdateOtherPlayer(int _id, OtherPlayer * pPlayer, UpdatePlayerMessage * pUpm)
 {
-	cout << pUpm->fVelocity[0] << "\n";
 	bool initPlayer = false;
 	for (size_t i = 0; i < entities->size(); i++)
 	{
 		if (entities->at(i)->id == _id)
 		{
 			initPlayer = true;
-			//entities->at(i)->SetPosition(pUpm->fPosition[0],pUpm->fPosition[1]);
-			entities->at(i)->SetPosition(_id * 100, 0);
+			entities->at(i)->SetPosition(pUpm->fPosition[0], pUpm->fPosition[1]);
 		}
 	}
 	if (!initPlayer)
 	{
-		NetworkEntity* newNet = new NetworkEntity(_id, Sprite::Create(L"Resources\\player.png"));
+		NetworkEntity* newNet = new NetworkEntity(_id, Sprite::Create(L"Resources\\tank.png"));
+		this->SetSize(newNet->GetSize().x, newNet->GetSize().y);
 		this->AddChild(newNet);
 		entities->push_back(newNet);
 	}
 
-	// If this player is inactive, activate it
-	if (!pPlayer->bActive)
-	{
-		pPlayer->fNewTime = GetTickCount() / 1000.0f;
-		pPlayer->vNewPos = D3DXVECTOR3(pUpm->fPosition[0], pUpm->fPosition[1], pUpm->fPosition[2]);
-		pPlayer->vNewVel = D3DXVECTOR3(pUpm->fVelocity[0], pUpm->fVelocity[1], pUpm->fVelocity[2]);
-		pPlayer->bActive = TRUE;
-
-		pPlayer->vRenderPos = pPlayer->vNewPos;
-		pPlayer->fRenderYaw = pPlayer->fYaw;
-
-		pPlayer->entity = Sprite::Create(L"Resources\\player.png");
-		pPlayer->entity->SetAnchorPoint(0.f, 0.f);
-		pPlayer->entity->SetPosition(pUpm->dwPlayerID * 30, 0);
-		pPlayer->vNewPos;
-	}
-
-	// Move old stuff backward
-	pPlayer->vOldPos = pPlayer->vNewPos;
-	pPlayer->vOldVel = pPlayer->vNewVel;
-	pPlayer->fOldTime = pPlayer->fNewTime;
-
-	// Update
-	pPlayer->fNewTime = GetTickCount() / 1000.0f;
-	pPlayer->vNewPos = D3DXVECTOR3(pUpm->fPosition[0], pUpm->fPosition[1], pUpm->fPosition[2]);
-	pPlayer->vNewVel = D3DXVECTOR3(pUpm->fVelocity[0], pUpm->fVelocity[1], pUpm->fVelocity[2]);
-	pPlayer->fYaw = pUpm->fYaw;
-
-	// Change the new state
-	if (pUpm->dwState != pPlayer->dwState)
-	{
-		// Choose the next animation
-		LPD3DXANIMATIONSET pNewSet = NULL;
-		switch (pUpm->dwState)
-		{
-		case TINYTRACK_WALK:        pNewSet = pPlayer->pWalkAnimation;          break;
-		case TINYTRACK_IDLE:        pNewSet = pPlayer->pIdleAnimation;          break;
-		case TINYTRACK_RUN:         pNewSet = pPlayer->pRunAnimation;           break;
-		}
-
-		// Smooth to the next animation
-		//TransitionOtherPlayerToAnimation(pPlayer, pNewSet);
-
-		// Change the state
-		pPlayer->dwState = pUpm->dwState;
-	}
+	//// If this player is inactive, activate it
+	//if (!pPlayer->bActive)
+	//{
+	//	pPlayer->fNewTime = GetTickCount() / 1000.0f;
+	//	pPlayer->vNewPos = D3DXVECTOR3(pUpm->fPosition[0], pUpm->fPosition[1], pUpm->fPosition[2]);
+	//	pPlayer->vNewVel = D3DXVECTOR3(pUpm->fVelocity[0], pUpm->fVelocity[1], pUpm->fVelocity[2]);
+	//	pPlayer->bActive = TRUE;
+	//	pPlayer->vRenderPos = pPlayer->vNewPos;
+	//	pPlayer->fRenderYaw = pPlayer->fYaw;
+	//	pPlayer->entity = Sprite::Create(L"Resources\\player.png");
+	//	pPlayer->entity->SetAnchorPoint(0.f, 0.f);
+	//	pPlayer->entity->SetPosition(pUpm->dwPlayerID * 30, 0);
+	//	pPlayer->vNewPos;
+	//}
+	//// Move old stuff backward
+	//pPlayer->vOldPos = pPlayer->vNewPos;
+	//pPlayer->vOldVel = pPlayer->vNewVel;
+	//pPlayer->fOldTime = pPlayer->fNewTime;
+	//// Update
+	//pPlayer->fNewTime = GetTickCount() / 1000.0f;
+	//pPlayer->vNewPos = D3DXVECTOR3(pUpm->fPosition[0], pUpm->fPosition[1], pUpm->fPosition[2]);
+	//pPlayer->vNewVel = D3DXVECTOR3(pUpm->fVelocity[0], pUpm->fVelocity[1], pUpm->fVelocity[2]);
 
 	// Success
 	return true;
+}
+void NetworkClient::DisconnectFromServer(SOCKET sSocket)
+{
+	LogOffMessage lom;
+	send(sSocket, (char*)&lom, sizeof(lom), 0);
 }

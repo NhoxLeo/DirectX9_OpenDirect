@@ -36,19 +36,12 @@
 /// Vertex definition for Direct3D
 #define D3DFVF_TERRAINVERTEX (D3DFVF_XYZ|D3DFVF_TEX1)
 
-/**
- * Stores a single coordinate in the terrain vertex buffer
- *   @author Karl Gluck
- */
+
 struct TerrainVertex
 {
 	FLOAT x, y, z;
 	FLOAT u, v;
 };
-/**
- * Player data recieved from the server
- *   @author Karl Gluck
- */
 struct OtherPlayer
 {
 	// Animation information
@@ -71,10 +64,6 @@ struct OtherPlayer
 	DWORD dwState;
 	FLOAT fYaw;
 };
-/**
- * List of message IDs that are transacted with the server
- *   @author Karl Gluck
- */
 enum Message
 {
 	MSG_LOGON,
@@ -84,53 +73,32 @@ enum Message
 	MSG_PLAYERLOGGEDON,
 	MSG_PLAYERLOGGEDOFF
 };
-/**
- * First structure in every message
- *   @author Karl Gluck
- */
 struct MessageHeader
 {
 	Message MsgID;
 };
-/**
- * Message sent to let the server know we want to log on
- *   @author Karl Gluck
- */
 struct LogOnMessage
 {
 	MessageHeader   Header;
 
 	LogOnMessage() { Header.MsgID = MSG_LOGON; }
 };
-/**
- * Client wants to disconnect from the server
- *   @author Karl Gluck
- */
 struct LogOffMessage
 {
 	MessageHeader   Header;
 
 	LogOffMessage() { Header.MsgID = MSG_LOGOFF; }
 };
-/**
- * Sent between the server and client to update player information
- *   @author Karl Gluck
- */
 struct UpdatePlayerMessage
 {
 	MessageHeader   Header;
 	DWORD           dwPlayerID;
-	FLOAT           fVelocity[3];       // Expressed in meters / second
+	FLOAT           fVelocity[3];
 	FLOAT           fPosition[3];
-	DWORD           dwState;
-	FLOAT           fYaw;
-
+	FLOAT           fRotation[3];
+	FLOAT           fSize[3];
 	UpdatePlayerMessage() { Header.MsgID = MSG_UPDATEPLAYER; }
 };
-/**
- * Sent by the server to tell the client that it has successfully logged on
- *   @author Karl Gluck
- */
 struct ConfirmLogOnMessage
 {
 	MessageHeader   Header;

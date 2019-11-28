@@ -2,10 +2,7 @@
 
 #define	WIN32_LEAN_AND_MEAN
 #include "stdafx.h"
-#include "NetworkCommunicationData.h"
 #include <iostream>
-#include "Server.h"
-#include "Client.h"
 #include "NetworkClient.h"
 #include "Tilemap.h"
 
@@ -16,12 +13,10 @@ private:
 	//Map* m_Map;
 	Object* m_UI;
 	bool isServer;
-	Sprite* entity;
-
-	Server* server;
-	Client* client;
+	Sprite *entity, *block1, *block2;
 
 	NetworkClient* networkClient;
+	CollisionManager* collisionManager;
 	Tilemap* tilemap;
 
 public:

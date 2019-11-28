@@ -4,7 +4,7 @@
 #include <winsock2.h>
 #include <stdio.h>
 #include <conio.h>
-#include "user.h"
+
 
 // Settings that define how the server operates
 #define WINSOCK_VERSION     MAKEWORD(2,2)
@@ -12,18 +12,10 @@
 #define MAX_PACKET_SIZE     1024
 #define MAX_USERS           16
 
-// Global variables used in the server program.  These variables are global because they are used
-// by the server thread and initialized in the main thread.  It would be inefficient and
-// duplicative to find an object-oriented workaround.
-HANDLE g_hExitEvent;    // Set when the server shuts down
-HANDLE g_hCommThread;   // Thread processing object
-WSAEVENT g_hRecvEvent;  // Event triggered when data is received
-SOCKET g_sSocket;       // Socket to send and receive on
-
-// Global variables for client management
-//HANDLE g_hUserSemaphore;    // Allows only a certain number of users to process simultaneously
-User g_Users[MAX_USERS];    // List of all of the users
-
+/**
+ * List of message IDs that are transacted with the server
+ *   @author Karl Gluck
+ */
 enum Message
 {
 	MSG_LOGON,
@@ -31,58 +23,75 @@ enum Message
 	MSG_UPDATEPLAYER,
 	MSG_CONFIRMLOGON,
 	MSG_PLAYERLOGGEDON,
-	MSG_PLAYERLOGGEDOFF,
+	MSG_PLAYERLOGGEDOFF
 };
-
+/**
+ * First structure in every message
+ *   @author Karl Gluck
+ */
 struct MessageHeader
 {
 	Message MsgID;
 };
-
+/**
+ * Message sent to let the server know we want to log on
+ *   @author Karl Gluck
+ */
 struct LogOnMessage
 {
 	MessageHeader   Header;
 
 	LogOnMessage() { Header.MsgID = MSG_LOGON; }
 };
-
+/**
+ * Client wants to disconnect from the server
+ *   @author Karl Gluck
+ */
 struct LogOffMessage
 {
 	MessageHeader   Header;
 
 	LogOffMessage() { Header.MsgID = MSG_LOGOFF; }
 };
-
+/**
+ * Sent between the server and client to update player information
+ *   @author Karl Gluck
+ */
 struct UpdatePlayerMessage
 {
 	MessageHeader   Header;
 	DWORD           dwPlayerID;
-	FLOAT           fVelocity[3];       // Expressed in meters / second
+	FLOAT           fVelocity[3];
 	FLOAT           fPosition[3];
-	DWORD           dwState;
-	FLOAT           fYaw;
-
+	FLOAT           fRotation[3];
+	FLOAT           fSize[3];
 	UpdatePlayerMessage() { Header.MsgID = MSG_UPDATEPLAYER; }
 };
-
+/**
+ * Sent by the server to tell the client that it has successfully logged on
+ *   @author Karl Gluck
+ */
 struct ConfirmLogOnMessage
 {
 	MessageHeader   Header;
 
 	ConfirmLogOnMessage() { Header.MsgID = MSG_CONFIRMLOGON; }
 };
+/**
+ * Another player has logged off
+ *   @author Karl Gluck
+ */
+struct PlayerLoggedOffMessage
+{
+	MessageHeader   Header;
+	DWORD           dwPlayerID;
 
+	PlayerLoggedOffMessage() { Header.MsgID = MSG_PLAYERLOGGEDOFF; }
+};
 struct PlayerLoggedOnMessage
 {
 	MessageHeader   Header;
 	DWORD           dwPlayerID;
 
 	PlayerLoggedOnMessage() { Header.MsgID = MSG_PLAYERLOGGEDON; }
-};
-struct PlayerLoggedOff
-{
-	MessageHeader   Header;
-	DWORD           dwPlayerID;
-
-	PlayerLoggedOff() { Header.MsgID = MSG_PLAYERLOGGEDOFF; }
 };

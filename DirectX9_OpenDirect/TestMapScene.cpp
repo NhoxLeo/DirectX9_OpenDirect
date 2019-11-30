@@ -76,19 +76,23 @@ void TestMapScene::InitializeUI() {
 void TestMapScene::Update(float deltaTime) {
 	Scene::Update(deltaTime);
 	//UpdateCamera();
-	
-	//entity->GetComponent<Rigidbody>()->SetVelocity(
-	//	(Input::GetInstance()->GetKeyState('A') == KeyState::Pressed) ? -1 : ((Input::GetInstance()->GetKeyState('D') == KeyState::Pressed) ? 1 : 0)
-	//	, (Input::GetInstance()->GetKeyState('W') == KeyState::Pressed) ? -1 : ((Input::GetInstance()->GetKeyState('S') == KeyState::Pressed) ? 1 : 0));
-	//Vector2 normalVector = Vector2(0, 0);
-	//for (size_t j = 0; j < m_Children.size(); j++)
-	//{
-	//	float normalX, normalY;
-	//	int checkAABB = collisionManager->CheckSweptAABB(entity, m_Children.at(j), normalX, normalY);
-	//	if (checkAABB < 1) normalVector = Vector2(normalX, normalY);
-	//	else if (checkAABB == 1) if (normalX > 0 || normalY > 0) normalVector = Vector2(normalX, normalY);
-	//}
-	//entity->SetPosition(entity->GetPosition() + entity->GetComponent<Rigidbody>()->GetVelocity() + normalVector);
+
+	/*entity->GetComponent<Rigidbody>()->SetVelocity(
+		(Input::GetInstance()->GetKeyState('A') == KeyState::Pressed) ? -1 : ((Input::GetInstance()->GetKeyState('D') == KeyState::Pressed) ? 1 : 0)
+		, (Input::GetInstance()->GetKeyState('W') == KeyState::Pressed) ? -1 : ((Input::GetInstance()->GetKeyState('S') == KeyState::Pressed) ? 1 : 0));
+	if (entity->GetComponent<Rigidbody>()->GetVelocity().x != 0 || entity->GetComponent<Rigidbody>()->GetVelocity().y != 0)
+	{
+		entity->SetRotation(180 * 3.14f / 180);
+	}
+	Vector2 normalVector = Vector2(0, 0);
+	for (size_t j = 0; j < m_Children.size(); j++)
+	{
+		float normalX, normalY;
+		int checkAABB = collisionManager->CheckSweptAABB(entity, m_Children.at(j), normalX, normalY);
+		if (checkAABB < 1) normalVector = Vector2(normalX, normalY);
+		else if (checkAABB == 1) if (normalX > 0 || normalY > 0) normalVector = Vector2(normalX, normalY);
+	}
+	entity->SetPosition(entity->GetPosition() + entity->GetComponent<Rigidbody>()->GetVelocity() + normalVector);*/
 
 }
 void TestMapScene::Render() {

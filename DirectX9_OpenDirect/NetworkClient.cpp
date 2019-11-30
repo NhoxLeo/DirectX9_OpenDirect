@@ -30,12 +30,21 @@ void NetworkClient::Update(float deltaTime)
 
 	Object::Update(deltaTime);
 	UpdatePlayerMessage upm;
-	upm.dwPlayerID = 0;
+	upm.dwPlayerID = id;
+	upm.tick = GetTickCount();
 	upm.fVelocity[0] = x;
 	upm.fVelocity[1] = y;
 	upm.fVelocity[2] = 0;
 	upm.fSize[0] = this->GetSize().x;
 	upm.fSize[1] = this->GetSize().y;
+	if (Input::GetInstance()->GetKeyState('K') == KeyState::Pressed)
+	{
+		Messenger a;
+		a.action = Action::Shoot;
+		a.id = id;
+		a.position[0] = 1;
+		send(sSocket, (CHAR*)&a, sizeof(a), 0);
+	}
 
 	// Send off the packet
 	int a = send(sSocket, (CHAR*)&upm, sizeof(upm), 0);
@@ -81,9 +90,9 @@ bool NetworkClient::ConnectToServer(std::string _ipAddress, SOCKET sSocket, HAND
 	addr.sin_addr.s_addr = inet_addr(_ipAddress.c_str());
 
 	// Send the log on message
-	LogOnMessage packet;
+	Messenger packet;
+	packet.action = Action::LogOn;
 	if (SOCKET_ERROR == sendto(sSocket, (CHAR*)&packet, sizeof(packet), 0, (LPSOCKADDR)&addr, sizeof(SOCKADDR_IN)))		return false;
-
 	// Wait for a reply or for a few seconds to pass
 	if (WAIT_TIMEOUT == WSAWaitForMultipleEvents(1, &hRecvEvent, TRUE, 3000, FALSE)) return false;
 
@@ -95,6 +104,12 @@ bool NetworkClient::ConnectToServer(std::string _ipAddress, SOCKET sSocket, HAND
 	int fromlen = sizeof(SOCKADDR_IN);
 	if (SOCKET_ERROR == (length = recvfrom(sSocket, buffer, sizeof(buffer), 0, (LPSOCKADDR)&src, &fromlen))) return false;
 
+	Messenger* pMh = (Messenger*)buffer;
+	if (pMh->action == Action::LogOn)
+	{
+		Messenger * pUpm = (Messenger*)buffer;
+		id = pUpm->id;
+	}
 	// Connect to this address
 	connect(sSocket, (LPSOCKADDR)&src, sizeof(SOCKADDR_IN));
 
@@ -110,27 +125,22 @@ bool NetworkClient::ProcessNetworkMessages(OtherPlayer * pPlayers, SOCKET sSocke
 		int size;
 		SOCKADDR_IN addr;
 		int fromlen = sizeof(SOCKADDR_IN);
-
 		// Stores return codes
 		bool hr;
-
 		// Get the packet
 		while (SOCKET_ERROR != (size = recvfrom(sSocket, buffer, sizeof(buffer), 0, (LPSOCKADDR)&addr, &fromlen)))
 		{
 			// Process information from the packet
 			hr = ProcessPacket(pPlayers, buffer, size);
-			if (hr == false)
-				return hr;
+			if (hr == false) return hr;
 		}
 	}
-
 	// Success
 	return true;
 }
 bool NetworkClient::ProcessPacket(OtherPlayer * pPlayers, const CHAR * pBuffer, DWORD dwSize)
 {
 	MessageHeader * pMh = (MessageHeader*)pBuffer;
-
 	switch (pMh->MsgID)
 	{
 	case MSG_UPDATEPLAYER:
@@ -138,14 +148,12 @@ bool NetworkClient::ProcessPacket(OtherPlayer * pPlayers, const CHAR * pBuffer, 
 		UpdatePlayerMessage * pUpm = (UpdatePlayerMessage*)pBuffer;
 		return UpdateOtherPlayer(pUpm->dwPlayerID, &pPlayers[pUpm->dwPlayerID], pUpm);
 	}
-
 	case MSG_PLAYERLOGGEDOFF:
 	{
 		PlayerLoggedOffMessage * pPlom = (PlayerLoggedOffMessage*)pBuffer;
 		pPlayers[pPlom->dwPlayerID].bActive = FALSE;
 	} break;
 	}
-
 	// Success
 	return true;
 }
@@ -158,6 +166,7 @@ bool NetworkClient::UpdateOtherPlayer(int _id, OtherPlayer * pPlayer, UpdatePlay
 		{
 			initPlayer = true;
 			entities->at(i)->SetPosition(pUpm->fPosition[0], pUpm->fPosition[1]);
+			entities->at(i)->SetRotation(pUpm->fRotation[0]);
 		}
 	}
 	if (!initPlayer)
@@ -167,30 +176,6 @@ bool NetworkClient::UpdateOtherPlayer(int _id, OtherPlayer * pPlayer, UpdatePlay
 		this->AddChild(newNet);
 		entities->push_back(newNet);
 	}
-
-	//// If this player is inactive, activate it
-	//if (!pPlayer->bActive)
-	//{
-	//	pPlayer->fNewTime = GetTickCount() / 1000.0f;
-	//	pPlayer->vNewPos = D3DXVECTOR3(pUpm->fPosition[0], pUpm->fPosition[1], pUpm->fPosition[2]);
-	//	pPlayer->vNewVel = D3DXVECTOR3(pUpm->fVelocity[0], pUpm->fVelocity[1], pUpm->fVelocity[2]);
-	//	pPlayer->bActive = TRUE;
-	//	pPlayer->vRenderPos = pPlayer->vNewPos;
-	//	pPlayer->fRenderYaw = pPlayer->fYaw;
-	//	pPlayer->entity = Sprite::Create(L"Resources\\player.png");
-	//	pPlayer->entity->SetAnchorPoint(0.f, 0.f);
-	//	pPlayer->entity->SetPosition(pUpm->dwPlayerID * 30, 0);
-	//	pPlayer->vNewPos;
-	//}
-	//// Move old stuff backward
-	//pPlayer->vOldPos = pPlayer->vNewPos;
-	//pPlayer->vOldVel = pPlayer->vNewVel;
-	//pPlayer->fOldTime = pPlayer->fNewTime;
-	//// Update
-	//pPlayer->fNewTime = GetTickCount() / 1000.0f;
-	//pPlayer->vNewPos = D3DXVECTOR3(pUpm->fPosition[0], pUpm->fPosition[1], pUpm->fPosition[2]);
-	//pPlayer->vNewVel = D3DXVECTOR3(pUpm->fVelocity[0], pUpm->fVelocity[1], pUpm->fVelocity[2]);
-
 	// Success
 	return true;
 }

@@ -12,14 +12,13 @@ public:
 	~NetworkClient();
 
 	// Networking structures
+	int id;
 	std::string ipAddress;
 	SOCKET sSocket;
 	HANDLE hRecvEvent;
 	OtherPlayer players[MAX_USERS];
-	Player player;
 	//ZeroMemory(players, sizeof(players));
 	std::vector<NetworkEntity*>* entities;
-
 	void Update(float deltaTime) override;
 
 	bool InitializeWinsock(SOCKET * pSocket, HANDLE * pRecvEvent);

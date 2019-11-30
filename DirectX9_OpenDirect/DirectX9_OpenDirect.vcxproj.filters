@@ -120,7 +120,7 @@
       <Filter>Framework\Header Files\Network</Filter>
     </ClInclude>
     <ClInclude Include="Tilemap.h">
-      <Filter>Framework\Header Files</Filter>
+      <Filter>Framework\Header Files\Components</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -187,10 +187,10 @@
     <ClCompile Include="NetworkClient.cpp">
       <Filter>Framework\Source Files\Network</Filter>
     </ClCompile>
-    <ClCompile Include="Tilemap.cpp">
-      <Filter>Framework\Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="WinMain.cpp" />
+    <ClCompile Include="Tilemap.cpp">
+      <Filter>Framework\Source Files\Components</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\build_camp.png">

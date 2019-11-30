@@ -46,25 +46,24 @@ Tilemap::~Tilemap()
 void Tilemap::Update(float deltaTime)
 {
 	Object::Update(deltaTime);
-	/*if (!initialized)
-	{
-		for (size_t i = 0; i < dataMap->size(); i++)
-		{
-			int _index = dataMap->at(i);
-			if (_index == 4)
-			{
-				int _tileRow = (int)(i / 26);
-				int _tileColumn = i % 26;
-
-				Object* obj = new Object();
-				obj->SetSize(16, 16);
-				obj->SetPosition(_tileColumn * 16 + 8, _tileRow * 16 + 8);
-				obj->AddComponent<BoxCollider>(new BoxCollider());
-				Director::GetInstance()->GetScene()->AddChild(obj);
-			}
-		}
-		initialized = !initialized;
-	}*/
+	//if (!initialized)
+	//{
+	//	for (size_t i = 0; i < dataMap->size(); i++)
+	//	{
+	//		int _index = dataMap->at(i);
+	//		if (_index == 4)
+	//		{
+	//			int _tileRow = (int)(i / 26);
+	//			int _tileColumn = i % 26;
+	//			Object* obj = new Object();
+	//			obj->SetSize(16, 16);
+	//			obj->SetPosition(_tileColumn * 16 + 8, _tileRow * 16 + 8);
+	//			obj->AddComponent<BoxCollider>(new BoxCollider());
+	//			Director::GetInstance()->GetScene()->AddChild(obj);
+	//		}
+	//	}
+	//	initialized = !initialized;
+	//}
 }
 
 void Tilemap::Render()

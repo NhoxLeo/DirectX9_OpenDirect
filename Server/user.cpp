@@ -108,6 +108,9 @@ HRESULT User::Connect(const SOCKADDR_IN * pAddress, LPTHREAD_START_ROUTINE lpPro
 	// We are now connected
 	m_bConnected = TRUE;
 
+	//And active
+	isActive = true;
+
 	// Success
 	return S_OK;
 }

@@ -1,21 +1,14 @@
 #pragma once
-
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 #include <winsock2.h>
 #include <stdio.h>
 #include <conio.h>
-
-
 // Settings that define how the server operates
 #define WINSOCK_VERSION     MAKEWORD(2,2)
 #define SERVER_COMM_PORT    27192
 #define MAX_PACKET_SIZE     1024
 #define MAX_USERS           16
-
-/**
- * List of message IDs that are transacted with the server
- *   @author Karl Gluck
- */
+#define MAX_LATE_FRAMES		10
 enum Message
 {
 	MSG_LOGON,
@@ -23,64 +16,32 @@ enum Message
 	MSG_UPDATEPLAYER,
 	MSG_CONFIRMLOGON,
 	MSG_PLAYERLOGGEDON,
-	MSG_PLAYERLOGGEDOFF
+	MSG_PLAYERLOGGEDOFF,
+	MSG_PLAYERSHOOT,
+	MSG_UPDATEOBJECT
 };
-/**
- * First structure in every message
- *   @author Karl Gluck
- */
 struct MessageHeader
 {
 	Message MsgID;
 };
-/**
- * Message sent to let the server know we want to log on
- *   @author Karl Gluck
- */
-struct LogOnMessage
-{
-	MessageHeader   Header;
-
-	LogOnMessage() { Header.MsgID = MSG_LOGON; }
-};
-/**
- * Client wants to disconnect from the server
- *   @author Karl Gluck
- */
 struct LogOffMessage
 {
 	MessageHeader   Header;
 
 	LogOffMessage() { Header.MsgID = MSG_LOGOFF; }
 };
-/**
- * Sent between the server and client to update player information
- *   @author Karl Gluck
- */
 struct UpdatePlayerMessage
 {
 	MessageHeader   Header;
 	DWORD           dwPlayerID;
+	FLOAT			tick;
 	FLOAT           fVelocity[3];
 	FLOAT           fPosition[3];
 	FLOAT           fRotation[3];
 	FLOAT           fSize[3];
+	BOOL			shoot;
 	UpdatePlayerMessage() { Header.MsgID = MSG_UPDATEPLAYER; }
 };
-/**
- * Sent by the server to tell the client that it has successfully logged on
- *   @author Karl Gluck
- */
-struct ConfirmLogOnMessage
-{
-	MessageHeader   Header;
-
-	ConfirmLogOnMessage() { Header.MsgID = MSG_CONFIRMLOGON; }
-};
-/**
- * Another player has logged off
- *   @author Karl Gluck
- */
 struct PlayerLoggedOffMessage
 {
 	MessageHeader   Header;
@@ -88,10 +49,35 @@ struct PlayerLoggedOffMessage
 
 	PlayerLoggedOffMessage() { Header.MsgID = MSG_PLAYERLOGGEDOFF; }
 };
-struct PlayerLoggedOnMessage
+enum Action
 {
-	MessageHeader   Header;
-	DWORD           dwPlayerID;
-
-	PlayerLoggedOnMessage() { Header.MsgID = MSG_PLAYERLOGGEDON; }
+	None,
+	LogOn,
+	LogOff,
+	Move,
+	Shoot,
+	Dead,
+	Create,
+	UpdateObj,
+	Destroy
+};
+enum ObjectType
+{
+	Player,
+	Bullet,
+	Brick,
+};
+struct Messenger
+{
+	int id;
+	Action action;
+	float position[3], rotation[3], size[3], velocity[3];
+	Messenger()
+	{
+		id = 0;
+		position[0] = position[1] = position[2] = 0;
+		rotation[0] = rotation[1] = rotation[2] = 0;
+		size[0] = size[1] = size[2] = 0;
+		velocity[0] = velocity[1] = velocity[2] = 0;
+	}
 };

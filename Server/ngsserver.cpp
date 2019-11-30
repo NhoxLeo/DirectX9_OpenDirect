@@ -6,6 +6,7 @@
 #include <fstream>
 #include <string>
 #include <ctime>
+#include <deque>
 
 //#pragma comment (lib,"Ws2_32.lib") // For Release only
 float _totalTime = (float)clock() / CLOCKS_PER_SEC;
@@ -13,7 +14,8 @@ float _elapsedTime = 0;
 clock_t _totalTicks;
 float _deltaTime = 0;
 float _lastTime = 0;
-const float tickPerFrame = 1.0f / 60;
+int FPS = 60;
+const float tickPerFrame = 1.0f / FPS;
 
 // Global variables used in the server program.  These variables are global because they are used
 // by the server thread and initialized in the main thread.  It would be inefficient and
@@ -29,40 +31,9 @@ UpdatePlayerMessage UPMs[MAX_USERS];
 int UPMSizes[MAX_USERS];
 std::vector<int>* dataMap;
 std::vector<Object*>* dataObj;
+std::deque<std::vector<Object>*>* lastFrameObjectsInfo;
+std::vector<Object> lateFrameObjects[MAX_LATE_FRAMES];
 
-void LoadWorld(const wchar_t * _txtPath)
-{
-	dataMap = new std::vector<int>();
-	dataObj = new std::vector<Object*>();
-	std::ifstream file(_txtPath);
-	if (file.good())
-	{
-		std::string curData = "";
-		int i = 0;
-		while (file >> curData)
-		{
-			i++;
-			int x = atoi(curData.c_str());
-			dataMap->push_back(x);
-		}
-		file.close();
-	}
-	for (size_t i = 0; i < dataMap->size(); i++)
-	{
-		int _index = dataMap->at(i);
-		if (_index == 4)
-		{
-			int _tileRow = (int)(i / 26);
-			int _tileColumn = i % 26;
-
-			Object* obj = new Object();
-			obj->size.x = obj->size.y = 16;
-			obj->position.x = _tileColumn * 16 + 8;
-			obj->position.y = _tileRow * 16 + 8;
-			dataObj->push_back(obj);
-		}
-	}
-}
 BOOL WaitForPackets()
 {
 	WSAEVENT hEvents[] = { g_hRecvEvent, g_hExitEvent };
@@ -85,6 +56,11 @@ int SendPacket(const LPSOCKADDR_IN pAddress, const CHAR * pBuffer, int length)
 }
 HRESULT ProcessUserPacket(User * pUser, const CHAR * pBuffer, DWORD dwSize)
 {
+	Messenger *mes = (Messenger*)pBuffer;
+	if (mes->action == Action::Shoot)
+	{
+		int a = 1;
+	}
 	// Get the message header so we can determine the type of the packet
 	MessageHeader * mh = (MessageHeader*)pBuffer;
 	// Process the message
@@ -116,26 +92,12 @@ HRESULT ProcessUserPacket(User * pUser, const CHAR * pBuffer, DWORD dwSize)
 	{
 		// Get this user's ID number
 		DWORD dwId = pUser->GetId();
-
 		// Set the message's ID component
 		UpdatePlayerMessage upm;
 		memcpy(&upm, pBuffer, dwSize);
 		upm.dwPlayerID = dwId;
-		/*pUser->velocity.x = upm.fVelocity[0];
-		pUser->velocity.y = upm.fVelocity[1];
-		pUser->position.x += pUser->velocity.x;
-		pUser->position.y += pUser->velocity.y;
-		upm.fPosition[0] = pUser->position.x;
-		upm.fPosition[1] = pUser->position.y;*/
-
 		memcpy(&UPMs[upm.dwPlayerID], &upm, dwSize);
 		UPMSizes[upm.dwPlayerID] = dwSize;
-		//// Re-broadcast this message
-		//for (DWORD i = 0; i < MAX_USERS; ++i)
-		//{
-		//	// Send to all connected users except the source
-		//	if (/*(i != dwId) && */(g_Users[i].IsConnected())) g_Users[i].SendPacket((CHAR*)&UPMs[upm.dwPlayerID], dwSize);
-		//}
 	}
 	break;
 	default:
@@ -153,57 +115,11 @@ DWORD WINAPI UserProcessor(LPVOID pParam)
 	User * pUser = (User*)pParam;
 	// Send a message to the user telling them that they have successfully logged on
 	// Build a packet
-	ConfirmLogOnMessage packet;
+	Messenger packet;
+	packet.action = Action::LogOn;
+	packet.id = pUser->GetId();
 	// Send the packet
 	int a = pUser->SendPacket((CHAR*)&packet, sizeof(packet));
-
-	//// Activity flag
-	//BOOL bUserActive = TRUE;
-	//// Enter the processing loop
-	//while (bUserActive)
-	//{
-	//	// Wait for something to happen or for 5 seconds to expire
-	//	switch (pUser->WaitForPackets(5000))
-	//	{
-	//		// When a packet is recieved, process it
-	//	case EWR_RECVPACKET:
-	//	{
-	//		OutputDebugString(".");
-	//		// Buffers used to recieve data
-	//		CHAR buffer[MAX_PACKET_SIZE];
-	//		int size;
-	//		// Get the packet
-	//		while (SOCKET_ERROR != (size = pUser->RecvPacket(buffer, sizeof(buffer))))
-	//		{
-	//			// Process information from the packet
-	//			if (S_FALSE == ProcessUserPacket(pUser, buffer, size))
-	//				break;
-	//		}
-	//	} break;
-	//	// If the user hasn't sent a message in a while, determine if the program wants to
-	//	// exit.  If it does, break the loop.
-	//	case EWR_TIMEOUT:
-	//	{
-	//		// Output message
-	//		printf("\n[%u] lagged out", pUser->GetId());
-	//		// If the global termination event is set, exit
-	//		if (WAIT_OBJECT_0 == WaitForSingleObject(g_hExitEvent, 0))
-	//			break;
-	//		// Log this player out
-	//		//pUser->Disconnect();
-	//	} break;
-	//	// This user has been forcibly disconnected by the server, usually by shutting down.
-	//	case EWR_DISCONNECT:
-	//	{
-	//		// Output message
-	//		printf("\n[%u] disconnected", pUser->GetId());
-	//		// No longer active
-	//		bUserActive = FALSE;
-	//	} break;
-	//	}
-	//}
-	//pUser->ThreadFinished();
-
 	// Success
 	return S_OK;
 }
@@ -237,58 +153,59 @@ DWORD WINAPI CommunicationThread(LPVOID pParam)
 		// Get data until the operation would block
 		while (SOCKET_ERROR != (len = RecvPacket(buffer, sizeof(buffer), &address)))
 		{
-			MessageHeader * pMh = (MessageHeader*)buffer;
-			if (pMh->MsgID == MSG_LOGON) LogOnNewPlayer(&address);
+			Messenger* pMh = (Messenger*)buffer;
+			if (pMh->action == Action::LogOn) LogOnNewPlayer(&address);
 		}
 	}
 
 	// Success
 	return S_OK;
 }
+void LoadWorld(const wchar_t * _txtPath)
+{
+	dataMap = new std::vector<int>();
+	dataObj = new std::vector<Object*>();
+	std::ifstream file(_txtPath);
+	if (file.good())
+	{
+		std::string curData = "";
+		int i = 0;
+		while (file >> curData)
+		{
+			i++;
+			int x = atoi(curData.c_str());
+			dataMap->push_back(x);
+		}
+		file.close();
+	}
+	for (size_t i = 0; i < dataMap->size(); i++)
+	{
+		int _index = dataMap->at(i);
+		if (_index == 4)
+		{
+			int _tileRow = (int)(i / 26);
+			int _tileColumn = i % 26;
+
+			Object* obj = new Object();
+			obj->size.x = obj->size.y = 16;
+			obj->position.x = _tileColumn * 16 + 8;
+			obj->position.y = _tileRow * 16 + 8;
+			obj->velocity.x = obj->velocity.y = 0;
+			dataObj->push_back(obj);
+		}
+	}
+}
 void Update(float _deltaTime)
 {
+	int lateFramesCount = 0;
+	std::vector<Object>* thisFrameUserData = new std::vector<Object>();
 	Vector2 normalVector;
 	normalVector.x = normalVector.y = 0;
 	for (int i = 0; i < MAX_USERS; ++i)
 	{
 		if (g_Users[i].IsConnected())
 		{
-			// Wait for something to happen or for 5 seconds to expire
-			switch (g_Users[i].WaitForPackets(5000))
-			{
-				// When a packet is recieved, process it
-			case EWR_RECVPACKET:
-			{
-				OutputDebugString(".");
-				// Buffers used to recieve data
-				CHAR buffer[MAX_PACKET_SIZE];
-				int size;
-				// Get the packet
-				while (SOCKET_ERROR != (size = g_Users[i].RecvPacket(buffer, sizeof(buffer))))
-				{
-					// Process information from the packet
-					if (S_FALSE == ProcessUserPacket(&g_Users[i], buffer, size)) break;
-				}
-			} break;
-			// If the user hasn't sent a message in a while, determine if the program wants to
-			// exit.  If it does, break the loop.
-			case EWR_TIMEOUT:
-			{
-				// Output message
-				printf("\n[%u] lagged out", g_Users[i].GetId());
-				// If the global termination event is set, exit
-				if (WAIT_OBJECT_0 == WaitForSingleObject(g_hExitEvent, 0))
-					break;
-				// Log this player out
-				//pUser->Disconnect();
-			} break;
-			// This user has been forcibly disconnected by the server, usually by shutting down.
-			case EWR_DISCONNECT:
-			{
-				// Output message
-				printf("\n[%u] disconnected", g_Users[i].GetId());
-			} break;
-			}
+			lateFramesCount = (int)(((int)GetTickCount() - UPMs[i].tick) / 16.67f);
 			g_Users[i].velocity.x = UPMs[i].fVelocity[0];
 			g_Users[i].velocity.y = UPMs[i].fVelocity[1];
 			g_Users[i].size.x = UPMs[i].fSize[0];
@@ -315,12 +232,13 @@ void Update(float _deltaTime)
 					}
 				}
 			}
-			/*for (size_t j = 0; j < dataObj->size(); j++)
+			for (size_t j = 0; j < dataObj->size(); j++)
 			{
 				float normalX, normalY;
 				int checkAABB = CollisionManager::GetInstance()->CheckSweptAABB(&g_Users[i], dataObj->at(j), normalX, normalY);
 				if (checkAABB < 1)
 				{
+					Object*a = dataObj->at(j);
 					normalVector.x = normalX;
 					normalVector.y = normalY;
 				}
@@ -328,29 +246,43 @@ void Update(float _deltaTime)
 				{
 					if (normalX > 0 || normalY > 0)
 					{
+						Object*a = dataObj->at(j);
 						normalVector.x = normalX;
 						normalVector.y = normalY;
 					}
 				}
-			}*/
+			}
 			// Apply Physics to players
-			if (g_Users[i].velocity.x != 0 || g_Users[i].velocity.y != 0)
+			if (g_Users[i].velocity.x != 0)
 			{
 				g_Users[i].position.x += g_Users[i].velocity.x + normalVector.x;
-				g_Users[i].position.y += g_Users[i].velocity.y + normalVector.y;
+				g_Users[i].floatRotation = (g_Users[i].velocity.x == 1) ? 90 : 270;
 			}
-			else
+			else if (g_Users[i].velocity.y != 0)
 			{
-				g_Users[i].position.x += g_Users[i].velocity.x;
-				g_Users[i].position.y += g_Users[i].velocity.y;
+				g_Users[i].position.y += g_Users[i].velocity.y + normalVector.y;
+				g_Users[i].floatRotation = (g_Users[i].velocity.y == 1) ? 180 : 0;
 			}
-
 			UPMs[i].fPosition[0] = g_Users[i].position.x;
 			UPMs[i].fPosition[1] = g_Users[i].position.y;
-			//Broadcast to all players
-			for (DWORD k = 0; k < MAX_USERS; ++k) if ((g_Users[k].IsConnected())) g_Users[k].SendPacket((CHAR*)&UPMs[i], UPMSizes[i]);
+			UPMs[i].fRotation[0] = g_Users[i].floatRotation *3.14f / 180;
+
+			if (lateFramesCount > 0)
+			{
+				for (int k = MAX_USERS - lateFramesCount - 1; k < lastFrameObjectsInfo->size(); ++k) lastFrameObjectsInfo->at(k)->push_back(g_Users[i]);
+				//lateFrameObjects[lateFramesCount - 1].push_back(g_Users[i]);
+			}
+			thisFrameUserData->push_back(g_Users[i]);
 		}
 	}
+	for (int i = 0; i < MAX_USERS; ++i)
+	{
+		//Broadcast to all players
+		for (DWORD k = 0; k < MAX_USERS; ++k) if ((g_Users[k].IsConnected())) g_Users[k].SendPacket((CHAR*)&UPMs[i], UPMSizes[i]);
+	}
+
+	if (lastFrameObjectsInfo->size() > MAX_LATE_FRAMES - 1) lastFrameObjectsInfo->pop_front();
+	lastFrameObjectsInfo->push_back(thisFrameUserData);
 }
 int main()
 {
@@ -418,7 +350,8 @@ int main()
 	// Tell the user that the server has been initialized
 	printf("Server successfully initialized.  Press any key to exit...");
 	LoadWorld(L"Resources\\Level1.txt");
-
+	lastFrameObjectsInfo = new std::deque<std::vector<Object>*>();
+	int index = 0;
 	while (true)
 	{
 		float curTime = (float)clock() / CLOCKS_PER_SEC;
@@ -427,14 +360,78 @@ int main()
 		_deltaTime = _totalTime - _lastTime;
 		if (_deltaTime >= tickPerFrame)
 		{
+			index = 0;
 			_lastTime += tickPerFrame;
 			// Update
 			Update(_deltaTime);
 		}
-		else Sleep((tickPerFrame - _deltaTime) * 1000.0f);
+		else
+		{
+			Sleep((tickPerFrame - _deltaTime) * 1000.0f);
+			////Late Frame Physics
+			//if (index < MAX_LATE_FRAMES && lastFrameObjectsInfo->size()>0)
+			//{
+			//	if (lateFrameObjects[index].size() > 0)
+			//	{
+			//		for (int o = 0; o < lateFrameObjects[index].size(); o++)
+			//		{
+			//			for (int p = 0; p < lastFrameObjectsInfo->at(index)->size(); p++)
+			//			{
+			//				//AABB
+			//			}
+			//		}
+			//	}
+			//	index++;
+			//}
+			for (int i = 0; i < MAX_USERS; ++i)
+			{
+				if (g_Users[i].IsConnected())
+				{
+					// Wait for something to happen or for 5 seconds to expire and get the package
+					switch (g_Users[i].WaitForPackets(5000))
+					{
+						// When a packet is recieved, process it
+					case EWR_RECVPACKET:
+					{
+						OutputDebugString(".");
+						// Buffers used to recieve data
+						CHAR buffer[MAX_PACKET_SIZE];
+						int size;
+						// Get the packet
+						while (SOCKET_ERROR != (size = g_Users[i].RecvPacket(buffer, sizeof(buffer))))
+						{
+							// Process information from the packet
+							if (S_FALSE == ProcessUserPacket(&g_Users[i], buffer, size)) break;
+						}
+					} break;
+					// If the user hasn't sent a message in a while, determine if the program wants to
+					// exit.  If it does, break the loop.
+					case EWR_TIMEOUT:
+					{
+						// Output message
+						printf("\n[%u] lagged out", g_Users[i].GetId());
+						// If the global termination event is set, exit
+						if (WAIT_OBJECT_0 == WaitForSingleObject(g_hExitEvent, 0)) break;
+						// Log this player out
+						//g_Users[i].Disconnect();
+					} break;
+					// This user has been forcibly disconnected by the server, usually by shutting down.
+					case EWR_DISCONNECT:
+					{
+						// Output message
+						printf("\n[%u] disconnected", g_Users[i].GetId());
+					} break;
+					}
+					g_Users[i].velocity.x = UPMs[i].fVelocity[0];
+					g_Users[i].velocity.y = UPMs[i].fVelocity[1];
+					g_Users[i].size.x = UPMs[i].fSize[0];
+					g_Users[i].size.y = UPMs[i].fSize[1];
+				}
+			}
+		}
 	}
 
-	 //Repeat until the termination event is set
+	//Repeat until the termination event is set
 	while (WAIT_OBJECT_0 != WaitForSingleObject(g_hExitEvent, 0))
 	{
 		// Wait for 10 seconds to exit

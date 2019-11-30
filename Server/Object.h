@@ -30,6 +30,7 @@ public:
 
 	std::string id, name, tag;
 	bool isActive;
+	float floatRotation;
 	Vector2 position, rotation, scale, size, velocity;
 
 protected:

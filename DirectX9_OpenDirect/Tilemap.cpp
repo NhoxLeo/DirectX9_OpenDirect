@@ -37,6 +37,24 @@ Tilemap::Tilemap(Sprite * sprite, const wchar_t * _imagePath, const wchar_t * _t
 		}
 		file.close();
 	}
+	for (size_t i = 0; i < 26; i++)
+	{
+		for (size_t j = 0; j < 26; j++)
+		{
+			int _index = dataMap->at((i * 26) + j);
+			Object* obj = new Object();
+			obj->SetPosition(j * 16, i * 16);
+			obj->SetName(std::to_string((i * 26) + j));
+			if (_index == 4)obj->SetTag("Brick");
+			else if (_index == 13)obj->SetTag("Wall");
+			else if (_index == 49 || _index == 50 || _index == 53 || _index == 54) obj->SetTag("Eagle");
+			objList.push_back(obj);
+		}
+	}
+
+	RECT rect;
+	rect.top = rect.bottom = rect.left = rect.right = 0;
+	tileSprite->SetSourceRect(rect);
 }
 
 Tilemap::~Tilemap()
@@ -46,38 +64,25 @@ Tilemap::~Tilemap()
 void Tilemap::Update(float deltaTime)
 {
 	Object::Update(deltaTime);
-	//if (!initialized)
-	//{
-	//	for (size_t i = 0; i < dataMap->size(); i++)
-	//	{
-	//		int _index = dataMap->at(i);
-	//		if (_index == 4)
-	//		{
-	//			int _tileRow = (int)(i / 26);
-	//			int _tileColumn = i % 26;
-	//			Object* obj = new Object();
-	//			obj->SetSize(16, 16);
-	//			obj->SetPosition(_tileColumn * 16 + 8, _tileRow * 16 + 8);
-	//			obj->AddComponent<BoxCollider>(new BoxCollider());
-	//			Director::GetInstance()->GetScene()->AddChild(obj);
-	//		}
-	//	}
-	//	initialized = !initialized;
-	//}
 }
 
 void Tilemap::Render()
 {
 	Object::Render();
-	for (size_t i = 0; i < 26; i++)
+	for (size_t i = 0; i < objList.size(); i++)
 	{
-		for (size_t j = 0; j < 26; j++)
+		string tag = objList.at(i)->GetTag();
+		int _index = 0;
+		if (tag == "Brick")			_index = 4;
+		else if (tag == "Wall")			_index = 13;
+		else if (tag == "Eagle")			_index = 49;
+		else _index = 0;
+
+		if (_index != 0)
 		{
-			int _index = dataMap->at((i * 26) + j);
 			int _tileRow = (int)(_index / 20);
 			int _tileColumn = _index % 20;
-
-			tileSprite->SetPosition(j * 16, i * 16);
+			tileSprite->SetPosition(objList.at(i)->GetPosition());
 			RECT rect;
 			rect.top = (_tileRow) * 16;
 			rect.bottom = (_tileRow + 1) * 16;
@@ -86,5 +91,14 @@ void Tilemap::Render()
 			tileSprite->SetSourceRect(rect);
 			tileSprite->Render();
 		}
+	}
+}
+
+void Tilemap::EraseObject(int id)
+{
+	for (int i = 0; i < objList.size(); i++)
+	{
+		if(objList.at(i)->GetName() == std::to_string(id))
+			objList.erase(objList.begin() + i);
 	}
 }

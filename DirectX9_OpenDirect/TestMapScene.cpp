@@ -27,41 +27,25 @@ bool TestMapScene::Initialize() {
 void TestMapScene::InitializeUI() {
 	isServer = true;
 	GetCamera()->Translate(0, 0);
+
+	string ip = "127.0.0.1";
+
 	/*FILE *stream;
 	AllocConsole();
 	freopen_s(&stream, "CONIN$", "r+t", stdin);
 	freopen_s(&stream, "CONOUT$", "w+t", stdout);
 	freopen_s(&stream, "CONOUT$", "w+t", stderr);*/
-
-	//cout << "Choose 'server' or 'client' by typing it down \n";
-	//string option;
-	//do
-	//{
-	//	cout << "Choose 'server' or 'client' by typing 'server' or 'client' down \n";
-	//	cin >> option;
-	//} while (option != "server" && option != "client");
-	//if (option == "server")
-	//{
-	//	isServer = true;
-	//	server = new Server();
-	//	AddChild(server);
-	//	//ServerInit();
-	//}
-	//else if (option == "client")
-	//{
-	//	isServer = false;
-	//	client = new Client();
-	//	AddChild(client);
-	//	//CLientInit();
-	//}
-	string ip = "127.0.0.1";
-	/*cout << "Type in the server address \n";
+	/*string ip;
+	cout << "Type in the server address \n";
 	cin >> ip;*/
 
 	tilemap = new Tilemap(Sprite::Create(L"Resources\\Level1.bmp"), L"Resources\\Level1.bmp", L"Resources\\Level1.txt", 20, 3, 26, 26, "Level1");
 	tilemap->SetAnchorPoint(0.f, 0.f);
 	tilemap->SetPosition(0, 0);
 	AddChild(tilemap);
+
+	//tilemap->EraseObject(12);
+	//tilemap->EraseObject(674);
 
 	networkClient = new NetworkClient(ip);
 	AddChild(networkClient);

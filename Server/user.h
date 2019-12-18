@@ -37,6 +37,9 @@ public:
 	float vScale[3];
 	float vSize[3];
 	float vVelocity[3];
+	unsigned long tick;
+	int inputSequenceNumber;
+	void OnCollisionEnter(Vector2 normal) override;
 protected:
 
 	BOOL m_bConnected;

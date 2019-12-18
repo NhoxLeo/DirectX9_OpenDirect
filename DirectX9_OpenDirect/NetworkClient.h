@@ -16,16 +16,22 @@ public:
 	std::string ipAddress;
 	SOCKET sSocket;
 	HANDLE hRecvEvent;
-	OtherPlayer players[MAX_USERS];
-	//ZeroMemory(players, sizeof(players));
+	NetworkEntity* players[MAX_USERS];
 	std::vector<NetworkEntity*>* entities;
+
+	Messenger* serverCurrentInput = NULL;
+	std::vector<Messenger> pendingInputs;
+	int input_sequence_number = 0;
+
+	float deltatime;
 	void Update(float deltaTime) override;
+	void Render() override;
 
 	bool InitializeWinsock(SOCKET * pSocket, HANDLE * pRecvEvent);
 	bool ConnectToServer(std::string _ipAddress, SOCKET sSocket, HANDLE hRecvEvent);
-	bool ProcessNetworkMessages(OtherPlayer * pPlayers, SOCKET sSocket, HANDLE hRecvEvent);
-	bool ProcessPacket(OtherPlayer * pPlayers, const CHAR * pBuffer, DWORD dwSize);
-	bool UpdateOtherPlayer(int _id, OtherPlayer * pPlayer, UpdatePlayerMessage * pUpm);
+	bool ProcessNetworkMessages(SOCKET sSocket, HANDLE hRecvEvent);
+	bool ProcessPacket(const CHAR * pBuffer, DWORD dwSize);
+	bool UpdateOtherPlayer(int _id, UpdateMessage * pUpm);
 	void DisconnectFromServer(SOCKET sSocket);
 };
 

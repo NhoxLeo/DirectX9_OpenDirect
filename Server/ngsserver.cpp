@@ -27,11 +27,13 @@ SOCKET g_sSocket;       // Socket to send and receive on
 // Global variables for client management
 //HANDLE g_hUserSemaphore;    // Allows only a certain number of users to process simultaneously
 User g_Users[MAX_USERS];    // List of all of the users
-UpdatePlayerMessage UPMs[MAX_USERS];
+UpdateMessage UPMs[MAX_USERS];
+Messenger msgs[MAX_USERS];
 int UPMSizes[MAX_USERS];
 std::vector<int>* dataMap;
-std::vector<Object*>* dataObj;
-std::deque<std::vector<Object>*>* lastFrameObjectsInfo;
+std::vector<Object*>* staticObjs;
+std::vector<Object*>* dynamicObjs;
+std::deque<std::vector<Object*>*>* lastFrameObjectsInfo;
 std::vector<Object> lateFrameObjects[MAX_LATE_FRAMES];
 
 BOOL WaitForPackets()
@@ -56,57 +58,65 @@ int SendPacket(const LPSOCKADDR_IN pAddress, const CHAR * pBuffer, int length)
 }
 HRESULT ProcessUserPacket(User * pUser, const CHAR * pBuffer, DWORD dwSize)
 {
-	Messenger *mes = (Messenger*)pBuffer;
-	if (mes->action == Action::Shoot)
+	Messenger* msg = (Messenger*)pBuffer;
+	switch (msg->action)
 	{
-		int a = 1;
+	case Action::UpdateObj:
+	{
+		pUser->velocity.x = msg->velocity[0];
+		pUser->velocity.y = msg->velocity[1];
+		pUser->size.x = msg->size[0];
+		pUser->size.y = msg->size[1];
+		pUser->tick = msg->tick;
+		pUser->inputSequenceNumber = msg->inputSequenceNumber;
+		int lateFramesCount = 0;
+		//std::vector<Object>* thisFrameUserData = new std::vector<Object>();
+		//if (pUser->IsConnected())
+		//{
+		//	lateFramesCount = (int)(((int)GetTickCount() - msg->tick) / 16.67f);
+		//	if (lateFramesCount > 0)
+		//	{
+		//		for (int k = MAX_USERS - lateFramesCount - 1; k < lastFrameObjectsInfo->size(); ++k);
+		//		//lastFrameObjectsInfo->at(k)->push_back(*pUser);
+		//		//lateFrameObjects[lateFramesCount - 1].push_back(g_Users[i]);
+		//	}
+		//	thisFrameUserData->push_back(*pUser);
+		//	if (lastFrameObjectsInfo->size() > MAX_LATE_FRAMES - 1) lastFrameObjectsInfo->pop_front();
+		//	lastFrameObjectsInfo->push_back(thisFrameUserData);
+		//}
 	}
-	// Get the message header so we can determine the type of the packet
-	MessageHeader * mh = (MessageHeader*)pBuffer;
-	// Process the message
-	switch (mh->MsgID)
+	break;
+	case Action::Create:
 	{
-	case MSG_LOGOFF:
+		//Object* bullet = new Object();
+		int id = msg->id;
+		for (DWORD k = 0; k < MAX_USERS; ++k) if ((g_Users[k].IsConnected())) g_Users[k].SendPacket((CHAR*)msg, sizeof(*msg));
+	}
+	break;
+	case Action::LogOff:
 	{
-		// Get this user's ID number
-		DWORD dwId = pUser->GetId();
-
-		// Build a disconnect message
-		PlayerLoggedOffMessage packet;
-		packet.dwPlayerID = dwId;
-
+		// Disconnect the user
+		pUser->Disconnect();
+		//pUser->ThreadFinished();
+		for (int i = 0; i < dynamicObjs->size(); i++)
+		{
+			if (dynamicObjs->at(i)->objType == ObjectType::Player)
+			{
+				if (dynamicObjs->at(i)->id == msg->id) dynamicObjs->erase(dynamicObjs->begin() + i);
+			}
+		}
 		// Tell all of the other users that this player disconnected
 		for (DWORD i = 0; i < MAX_USERS; ++i)
 		{
 			// Send to all connected users except the source
-			if (/*(i != dwId) &&*/ (g_Users[i].IsConnected()))
-				g_Users[i].SendPacket((CHAR*)&packet, sizeof(packet));
+			if (/*i != msg->id && */g_Users[i].IsConnected()) g_Users[i].SendPacket((CHAR*)msg, sizeof(*msg));
 		}
-		// Disconnect the user
-		pUser->Disconnect();
-
-		// Return a success message, but the recieve loop can't continue
-		return S_FALSE;
-	}
-	case MSG_UPDATEPLAYER:
-	{
-		// Get this user's ID number
-		DWORD dwId = pUser->GetId();
-		// Set the message's ID component
-		UpdatePlayerMessage upm;
-		memcpy(&upm, pBuffer, dwSize);
-		upm.dwPlayerID = dwId;
-		memcpy(&UPMs[upm.dwPlayerID], &upm, dwSize);
-		UPMSizes[upm.dwPlayerID] = dwSize;
 	}
 	break;
 	default:
-	{
-		// This message type couldn't be processed
-		return E_FAIL;
+		break;
 	}
-	}
-	// Success
+
 	return S_OK;
 }
 DWORD WINAPI UserProcessor(LPVOID pParam)
@@ -115,11 +125,62 @@ DWORD WINAPI UserProcessor(LPVOID pParam)
 	User * pUser = (User*)pParam;
 	// Send a message to the user telling them that they have successfully logged on
 	// Build a packet
-	Messenger packet;
-	packet.action = Action::LogOn;
+
+	LogOnMessage packet;
+	//packet.Header.MsgID = Message::MSG_LOGON;
 	packet.id = pUser->GetId();
 	// Send the packet
 	int a = pUser->SendPacket((CHAR*)&packet, sizeof(packet));
+	//for (DWORD k = 0; k < MAX_USERS; ++k) if (k != packet.id && g_Users[k].IsConnected()) g_Users[k].SendPacket((CHAR*)&packet, sizeof(packet));
+
+	// Activity flag
+	BOOL bUserActive = TRUE;
+
+	// Enter the processing loop
+	while (bUserActive)
+	{
+		// Wait for something to happen or for 5 seconds to expire
+		switch (pUser->WaitForPackets(5000))
+		{
+		case EWR_RECVPACKET:
+		{
+			OutputDebugString(".");
+			// Buffers used to recieve data
+			CHAR buffer[MAX_PACKET_SIZE];
+			int size;
+			// Get the packet
+			while (SOCKET_ERROR != (size = pUser->RecvPacket(buffer, sizeof(buffer))))
+			{
+				// Process information from the packet
+				if (S_FALSE == ProcessUserPacket(pUser, buffer, size)) break;
+			}
+		} break;
+		case EWR_TIMEOUT:
+		{
+			// Output message
+			printf("\n[%u] lagged out", pUser->GetId());
+
+			// If the global termination event is set, exit
+			if (WAIT_OBJECT_0 == WaitForSingleObject(g_hExitEvent, 0)) break;
+
+			// Log this player out
+			//pUser->Disconnect();
+
+		} break;
+		case EWR_DISCONNECT:
+		{
+			// Output message
+			printf("\n[%u] disconnected", pUser->GetId());
+
+			// No longer active
+			bUserActive = FALSE;
+
+		} break;
+		}
+	}
+
+	pUser->ThreadFinished();
+
 	// Success
 	return S_OK;
 }
@@ -132,6 +193,9 @@ HRESULT LogOnNewPlayer(const SOCKADDR_IN * pAddr)
 		if (g_Users[i].IsConnected() == FALSE)
 		{
 			printf("\nLogged on user %i", i);
+			g_Users[i].objType = ObjectType::Player;
+			g_Users[i].id = i;
+			dynamicObjs->push_back(&g_Users[i]);
 			return g_Users[i].Connect(pAddr, UserProcessor);
 		}
 	}
@@ -147,24 +211,22 @@ DWORD WINAPI CommunicationThread(LPVOID pParam)
 		char buffer[MAX_PACKET_SIZE];
 		SOCKADDR_IN address;
 		int len;
-
 		ZeroMemory(buffer, sizeof(buffer));
-
 		// Get data until the operation would block
 		while (SOCKET_ERROR != (len = RecvPacket(buffer, sizeof(buffer), &address)))
 		{
-			Messenger* pMh = (Messenger*)buffer;
-			if (pMh->action == Action::LogOn) LogOnNewPlayer(&address);
+			MessageHeader* pMh = (MessageHeader*)buffer;
+			if (pMh->MsgID == Message::MSG_LOGON) LogOnNewPlayer(&address);
 		}
 	}
-
 	// Success
 	return S_OK;
 }
 void LoadWorld(const wchar_t * _txtPath)
 {
 	dataMap = new std::vector<int>();
-	dataObj = new std::vector<Object*>();
+	staticObjs = new std::vector<Object*>();
+	dynamicObjs = new std::vector<Object*>();
 	std::ifstream file(_txtPath);
 	if (file.good())
 	{
@@ -178,45 +240,44 @@ void LoadWorld(const wchar_t * _txtPath)
 		}
 		file.close();
 	}
-	for (size_t i = 0; i < dataMap->size(); i++)
+	for (int i = 0; i < dataMap->size(); i++)
 	{
 		int _index = dataMap->at(i);
-		if (_index == 4)
+		if (_index != 0)
 		{
 			int _tileRow = (int)(i / 26);
 			int _tileColumn = i % 26;
-
 			Object* obj = new Object();
-			obj->size.x = obj->size.y = 16;
-			obj->position.x = _tileColumn * 16 + 8;
-			obj->position.y = _tileRow * 16 + 8;
 			obj->velocity.x = obj->velocity.y = 0;
-			dataObj->push_back(obj);
+			obj->size.x = obj->size.y = 16;
+			obj->position.x = _tileColumn * 16 + obj->size.x / 2;
+			obj->position.y = _tileRow * 16 + obj->size.x / 2;
+			obj->id = i;
+			if (_index == 4) obj->tag = "Brick";
+			else if (_index == 13) obj->tag = "Wall";
+			else if (_index == 49 || _index == 50 || _index == 53 || _index == 54) obj->tag = "Eagle";
+			staticObjs->push_back(obj);
 		}
 	}
 }
 void Update(float _deltaTime)
 {
-	int lateFramesCount = 0;
-	std::vector<Object>* thisFrameUserData = new std::vector<Object>();
+	//std::vector<Object*>* thisFrameUserData = new std::vector<Object*>();
 	Vector2 normalVector;
 	normalVector.x = normalVector.y = 0;
-	for (int i = 0; i < MAX_USERS; ++i)
+	//Physics
+	for (int i = 0; i < dynamicObjs->size(); ++i)
 	{
-		if (g_Users[i].IsConnected())
+		//thisFrameUserData->push_back(dynamicObjs->at(i));
+		if (dynamicObjs->at(i)->objType == ObjectType::Player)
 		{
-			lateFramesCount = (int)(((int)GetTickCount() - UPMs[i].tick) / 16.67f);
-			g_Users[i].velocity.x = UPMs[i].fVelocity[0];
-			g_Users[i].velocity.y = UPMs[i].fVelocity[1];
-			g_Users[i].size.x = UPMs[i].fSize[0];
-			g_Users[i].size.y = UPMs[i].fSize[1];
-			//Physics
-			for (DWORD j = 0; j < MAX_USERS; j++)
+			for (int j = 0; j < dynamicObjs->size(); ++j)
 			{
-				if (i != j && g_Users[j].IsConnected())
+				if (dynamicObjs->at(j)->objType == ObjectType::Player && j == i);
+				else
 				{
 					float normalX, normalY;
-					int checkAABB = CollisionManager::GetInstance()->CheckSweptAABB(&g_Users[i], &g_Users[j], normalX, normalY);
+					int checkAABB = CollisionManager::GetInstance()->CheckSweptAABB(dynamicObjs->at(i), dynamicObjs->at(j), normalX, normalY);
 					if (checkAABB < 1)
 					{
 						normalVector.x = normalX;
@@ -232,13 +293,13 @@ void Update(float _deltaTime)
 					}
 				}
 			}
-			for (size_t j = 0; j < dataObj->size(); j++)
+			for (int j = 0; j < staticObjs->size(); j++)
 			{
 				float normalX, normalY;
-				int checkAABB = CollisionManager::GetInstance()->CheckSweptAABB(&g_Users[i], dataObj->at(j), normalX, normalY);
+				int checkAABB = CollisionManager::GetInstance()->CheckSweptAABB(dynamicObjs->at(i), staticObjs->at(j), normalX, normalY);
 				if (checkAABB < 1)
 				{
-					Object*a = dataObj->at(j);
+					Object*a = staticObjs->at(j);
 					normalVector.x = normalX;
 					normalVector.y = normalY;
 				}
@@ -246,43 +307,49 @@ void Update(float _deltaTime)
 				{
 					if (normalX > 0 || normalY > 0)
 					{
-						Object*a = dataObj->at(j);
+						Object*a = staticObjs->at(j);
 						normalVector.x = normalX;
 						normalVector.y = normalY;
 					}
 				}
 			}
-			// Apply Physics to players
-			if (g_Users[i].velocity.x != 0)
-			{
-				g_Users[i].position.x += g_Users[i].velocity.x + normalVector.x;
-				g_Users[i].floatRotation = (g_Users[i].velocity.x == 1) ? 90 : 270;
-			}
-			else if (g_Users[i].velocity.y != 0)
-			{
-				g_Users[i].position.y += g_Users[i].velocity.y + normalVector.y;
-				g_Users[i].floatRotation = (g_Users[i].velocity.y == 1) ? 180 : 0;
-			}
-			UPMs[i].fPosition[0] = g_Users[i].position.x;
-			UPMs[i].fPosition[1] = g_Users[i].position.y;
-			UPMs[i].fRotation[0] = g_Users[i].floatRotation *3.14f / 180;
-
-			if (lateFramesCount > 0)
-			{
-				for (int k = MAX_USERS - lateFramesCount - 1; k < lastFrameObjectsInfo->size(); ++k) lastFrameObjectsInfo->at(k)->push_back(g_Users[i]);
-				//lateFrameObjects[lateFramesCount - 1].push_back(g_Users[i]);
-			}
-			thisFrameUserData->push_back(g_Users[i]);
+			// Apply Velocity to players after physics
+			//for (int k = 0; k < MAX_USERS; ++k) if (g_Users[k].id == dynamicObjs->at(i)->id) g_Users[k].OnCollisionEnter(normalVector);
+			dynamicObjs->at(i)->OnCollisionEnter(normalVector);
 		}
 	}
+
+	//if (lastFrameObjectsInfo->size() > MAX_LATE_FRAMES - 1) lastFrameObjectsInfo->pop_front();
+	//lastFrameObjectsInfo->push_back(thisFrameUserData);
+
+	//Create the sending Message
 	for (int i = 0; i < MAX_USERS; ++i)
 	{
-		//Broadcast to all players
-		for (DWORD k = 0; k < MAX_USERS; ++k) if ((g_Users[k].IsConnected())) g_Users[k].SendPacket((CHAR*)&UPMs[i], UPMSizes[i]);
+		if (g_Users[i].IsConnected())
+		{
+			msgs[i].id = g_Users[i].GetId();
+			msgs[i].action = Action::UpdateObj;
+			msgs[i].type = ObjectType::Player;
+			msgs[i].inputSequenceNumber = g_Users[i].inputSequenceNumber;
+			msgs[i].tick = g_Users[i].tick;
+			msgs[i].position[0] = g_Users[i].position.x;
+			msgs[i].position[1] = g_Users[i].position.y;
+			msgs[i].rotation[0] = g_Users[i].floatRotation *3.14f / 180;
+			msgs[i].size[0] = g_Users[i].size.x;
+			msgs[i].size[1] = g_Users[i].size.y;
+		}
 	}
-
-	if (lastFrameObjectsInfo->size() > MAX_LATE_FRAMES - 1) lastFrameObjectsInfo->pop_front();
-	lastFrameObjectsInfo->push_back(thisFrameUserData);
+	//Broadcast to all players
+	for (int i = 0; i < MAX_USERS; ++i)
+	{
+		for (DWORD k = 0; k < MAX_USERS; ++k)
+		{
+			if (g_Users[i].IsConnected() && g_Users[k].IsConnected())
+			{
+				g_Users[k].SendPacket((CHAR*)&msgs[i], sizeof(msgs[i]));
+			}
+		}
+	}
 }
 int main()
 {
@@ -349,8 +416,9 @@ int main()
 	}
 	// Tell the user that the server has been initialized
 	printf("Server successfully initialized.  Press any key to exit...");
+	//Initiate game world
 	LoadWorld(L"Resources\\Level1.txt");
-	lastFrameObjectsInfo = new std::deque<std::vector<Object>*>();
+	lastFrameObjectsInfo = new std::deque<std::vector<Object*>*>();
 	int index = 0;
 	while (true)
 	{
@@ -362,12 +430,8 @@ int main()
 		{
 			index = 0;
 			_lastTime += tickPerFrame;
-			// Update
-			Update(_deltaTime);
-		}
-		else
-		{
-			Sleep((tickPerFrame - _deltaTime) * 1000.0f);
+			//// Update
+
 			////Late Frame Physics
 			//if (index < MAX_LATE_FRAMES && lastFrameObjectsInfo->size()>0)
 			//{
@@ -383,52 +447,10 @@ int main()
 			//	}
 			//	index++;
 			//}
-			for (int i = 0; i < MAX_USERS; ++i)
-			{
-				if (g_Users[i].IsConnected())
-				{
-					// Wait for something to happen or for 5 seconds to expire and get the package
-					switch (g_Users[i].WaitForPackets(5000))
-					{
-						// When a packet is recieved, process it
-					case EWR_RECVPACKET:
-					{
-						OutputDebugString(".");
-						// Buffers used to recieve data
-						CHAR buffer[MAX_PACKET_SIZE];
-						int size;
-						// Get the packet
-						while (SOCKET_ERROR != (size = g_Users[i].RecvPacket(buffer, sizeof(buffer))))
-						{
-							// Process information from the packet
-							if (S_FALSE == ProcessUserPacket(&g_Users[i], buffer, size)) break;
-						}
-					} break;
-					// If the user hasn't sent a message in a while, determine if the program wants to
-					// exit.  If it does, break the loop.
-					case EWR_TIMEOUT:
-					{
-						// Output message
-						printf("\n[%u] lagged out", g_Users[i].GetId());
-						// If the global termination event is set, exit
-						if (WAIT_OBJECT_0 == WaitForSingleObject(g_hExitEvent, 0)) break;
-						// Log this player out
-						//g_Users[i].Disconnect();
-					} break;
-					// This user has been forcibly disconnected by the server, usually by shutting down.
-					case EWR_DISCONNECT:
-					{
-						// Output message
-						printf("\n[%u] disconnected", g_Users[i].GetId());
-					} break;
-					}
-					g_Users[i].velocity.x = UPMs[i].fVelocity[0];
-					g_Users[i].velocity.y = UPMs[i].fVelocity[1];
-					g_Users[i].size.x = UPMs[i].fSize[0];
-					g_Users[i].size.y = UPMs[i].fSize[1];
-				}
-			}
+
+			Update(_deltaTime);
 		}
+		else Sleep((tickPerFrame - _deltaTime) * 1000.0f);
 	}
 
 	//Repeat until the termination event is set

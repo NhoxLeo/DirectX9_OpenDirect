@@ -10,12 +10,12 @@ public:
 	~Tilemap();
 	void Update(float deltaTime) override;
 	void Render() override;
+	void EraseObject(int id);
 	vector<int>* dataMap;
 private:
-	
-
 	Sprite* tileSprite;
 	bool initialized = false;
+	std::vector<Object*> objList;
 	/*int mapColumn;
 	int mapRow;
 	int tileColumn;

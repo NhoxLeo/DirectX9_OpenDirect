@@ -22,7 +22,8 @@ Object::Object()
 	, m_ZOrder(0)
 	, m_Visible(true)
 	, m_TransformUpdate(true)
-	, m_Name("") {
+	, m_Name("")
+	, m_Tag("") {
 	D3DXMatrixIdentity(&m_Matrix);
 }
 Object::~Object() {

@@ -5,7 +5,9 @@
 #include <conio.h>
 // Settings that define how the server operates
 #define WINSOCK_VERSION     MAKEWORD(2,2)
-#define SERVER_COMM_PORT    27192
+//#define SERVER_COMM_PORT    27192
+#define SERVER_COMM_PORT    8888
+//#define SERVER_COMM_PORT    3389
 #define MAX_PACKET_SIZE     1024
 #define MAX_USERS           16
 #define MAX_LATE_FRAMES		10
@@ -24,30 +26,30 @@ struct MessageHeader
 {
 	Message MsgID;
 };
+struct LogOnMessage
+{
+	MessageHeader   Header;
+	int id;
+	float size[2];
+	LogOnMessage() { Header.MsgID = Message::MSG_LOGON; size[0] = size[1] = 0; }
+};
 struct LogOffMessage
 {
-	MessageHeader   Header;
-
-	LogOffMessage() { Header.MsgID = MSG_LOGOFF; }
+	MessageHeader Header;
+	int id;
+	LogOffMessage() { Header.MsgID = Message::MSG_LOGOFF; }
 };
-struct UpdatePlayerMessage
+struct UpdateMessage
 {
 	MessageHeader   Header;
-	DWORD           dwPlayerID;
-	FLOAT			tick;
-	FLOAT           fVelocity[3];
-	FLOAT           fPosition[3];
-	FLOAT           fRotation[3];
-	FLOAT           fSize[3];
-	BOOL			shoot;
-	UpdatePlayerMessage() { Header.MsgID = MSG_UPDATEPLAYER; }
-};
-struct PlayerLoggedOffMessage
-{
-	MessageHeader   Header;
-	DWORD           dwPlayerID;
-
-	PlayerLoggedOffMessage() { Header.MsgID = MSG_PLAYERLOGGEDOFF; }
+	DWORD           id;
+	float			tick;
+	float           fVelocity[3];
+	//float           fPosition[3];
+	float           fRotation[3];
+	//float           fSize[3];
+	bool			shoot;
+	UpdateMessage() { Header.MsgID = MSG_UPDATEPLAYER; }
 };
 enum Action
 {
@@ -63,6 +65,7 @@ enum Action
 };
 enum ObjectType
 {
+	SimpleObject,
 	Player,
 	Bullet,
 	Brick,
@@ -70,14 +73,20 @@ enum ObjectType
 struct Messenger
 {
 	int id;
+	int inputSequenceNumber;
+	unsigned long tick;
 	Action action;
-	float position[3], rotation[3], size[3], velocity[3];
+	ObjectType type;
+	float position[2], rotation[2], size[2], velocity[2];
 	Messenger()
 	{
+		tick = 0;
+		inputSequenceNumber = 0;
+		type = SimpleObject;
 		id = 0;
-		position[0] = position[1] = position[2] = 0;
-		rotation[0] = rotation[1] = rotation[2] = 0;
-		size[0] = size[1] = size[2] = 0;
-		velocity[0] = velocity[1] = velocity[2] = 0;
+		position[0] = position[1] = 0;
+		rotation[0] = rotation[1] = 0;
+		velocity[0] = velocity[1] = 0;
+		size[0] = size[1] = 0;
 	}
 };

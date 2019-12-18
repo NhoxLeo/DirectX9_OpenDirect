@@ -159,3 +159,8 @@ int User::RecvPacket(char * pBuffer, int length)
 	// Receive messages
 	return recv(m_sSocket, pBuffer, length, 0);
 }
+
+void User::OnCollisionEnter(Vector2 normal)
+{
+	Object::OnCollisionEnter(normal);
+}

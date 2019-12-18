@@ -1,13 +1,14 @@
 #include "NetworkClient.h"
 
 
-
 NetworkClient::NetworkClient()
 {
 	ipAddress = "127.0.0.1";
 	if (InitializeWinsock(&sSocket, &hRecvEvent) && ConnectToServer(ipAddress, sSocket, hRecvEvent));
 	else cout << "failed";
 	entities = new vector<NetworkEntity*>();
+
+	for (size_t i = 0; i < MAX_USERS; i++) players[i] = new NetworkEntity(i, Sprite::Create(L"Resources\\tank.png"));
 }
 NetworkClient::NetworkClient(std::string _ipAddress)
 {
@@ -15,6 +16,7 @@ NetworkClient::NetworkClient(std::string _ipAddress)
 	ipAddress = _ipAddress;
 	if (InitializeWinsock(&sSocket, &hRecvEvent) && ConnectToServer(_ipAddress, sSocket, hRecvEvent));
 	else cout << "failed";
+	for (size_t i = 0; i < MAX_USERS; i++) players[i] = new NetworkEntity(i, Sprite::Create(L"Resources\\tank.png"));
 }
 NetworkClient::~NetworkClient()
 {
@@ -29,28 +31,60 @@ void NetworkClient::Update(float deltaTime)
 	if (Input::GetInstance()->GetKeyState('S') == KeyState::Pressed) y = 1;
 
 	Object::Update(deltaTime);
-	UpdatePlayerMessage upm;
-	upm.dwPlayerID = id;
-	upm.tick = GetTickCount();
-	upm.fVelocity[0] = x;
-	upm.fVelocity[1] = y;
-	upm.fVelocity[2] = 0;
-	upm.fSize[0] = this->GetSize().x;
-	upm.fSize[1] = this->GetSize().y;
+	//for (size_t i = 0; i < entities->size(); i++) entities->at(i)->Update(deltaTime);
+	//for (size_t i = 0; i < MAX_USERS; i++) if (players[i]->isActive) players[i]->Update(deltaTime);
+	//players[id]->SetPosition(players[id]->GetPosition() + Vector2(x, y));
+
+	Messenger msg;
+	msg.action = Action::UpdateObj;
+	msg.id = id;
+	msg.tick = GetTickCount();
+	msg.velocity[0] = x;
+	msg.velocity[1] = y;
+	if (msg.velocity[0] != 0) msg.rotation[0] = (msg.velocity[0] == 1) ? 90 : 270;
+	else if (msg.velocity[1] != 0) msg.rotation[0] = (msg.velocity[1] == 1) ? 180 : 0;
+	msg.rotation[0] = msg.rotation[0] * 3.14f / 180;
+	msg.size[0] = this->GetSize().x;
+	msg.size[1] = this->GetSize().y;
+	msg.inputSequenceNumber = input_sequence_number++;
+
 	if (Input::GetInstance()->GetKeyState('K') == KeyState::Pressed)
 	{
-		Messenger a;
-		a.action = Action::Shoot;
-		a.id = id;
-		a.position[0] = 1;
-		send(sSocket, (CHAR*)&a, sizeof(a), 0);
+		Messenger shootMessage;
+		shootMessage.type = ObjectType::Bullet;
+		shootMessage.action = Action::Create;
+		shootMessage.id = id;
+		for (size_t i = 0; i < entities->size(); i++)
+		{
+			if (entities->at(i)->id == id)
+			{
+				shootMessage.position[0] = entities->at(i)->GetPosition().x;
+				shootMessage.position[1] = entities->at(i)->GetPosition().y;
+			}
+		}
+		shootMessage.velocity[0] = 1;
+		shootMessage.velocity[1] = 0;
+		int a = sizeof(shootMessage);
+		send(sSocket, (CHAR*)&shootMessage, sizeof(shootMessage), 0);
 	}
 
+
+	pendingInputs.push_back(msg);
 	// Send off the packet
-	int a = send(sSocket, (CHAR*)&upm, sizeof(upm), 0);
+	int sendInt = send(sSocket, (CHAR*)&msg, sizeof(msg), 0);
 
 	// Update the messages from the server
-	ProcessNetworkMessages(players, sSocket, hRecvEvent);
+	ProcessNetworkMessages(sSocket, hRecvEvent);
+
+
+	////cout << pendingInputs.size() << "\n";
+
+}
+void NetworkClient::Render()
+{
+	Object::Render();
+	for (size_t i = 0; i < entities->size(); i++) entities->at(i)->Render();
+	//for (size_t i = 0; i < MAX_USERS; i++) if (players[i]->isActive) players[i]->Render();
 }
 
 bool NetworkClient::InitializeWinsock(SOCKET * pSocket, HANDLE * pRecvEvent)
@@ -60,7 +94,11 @@ bool NetworkClient::InitializeWinsock(SOCKET * pSocket, HANDLE * pRecvEvent)
 		// Stores information about Winsock
 		WSADATA wsaData;
 		// Call the DLL initialization function
-		if (SOCKET_ERROR == WSAStartup(WINSOCK_VERSION, &wsaData) || wsaData.wVersion != WINSOCK_VERSION) return false;
+		if (SOCKET_ERROR == WSAStartup(WINSOCK_VERSION, &wsaData) || wsaData.wVersion != WINSOCK_VERSION)
+		{
+			cout << "cannot init winsock";
+			return false;
+		}
 	}
 
 	// Set up the main socket 
@@ -70,6 +108,7 @@ bool NetworkClient::InitializeWinsock(SOCKET * pSocket, HANDLE * pRecvEvent)
 	HANDLE hRecvEvent = WSACreateEvent();
 	if (SOCKET_ERROR == WSAEventSelect(sSocket, hRecvEvent, FD_READ))
 	{
+		cout << "cannot connect";
 		closesocket(sSocket);
 		return false;
 	}
@@ -90,8 +129,8 @@ bool NetworkClient::ConnectToServer(std::string _ipAddress, SOCKET sSocket, HAND
 	addr.sin_addr.s_addr = inet_addr(_ipAddress.c_str());
 
 	// Send the log on message
-	Messenger packet;
-	packet.action = Action::LogOn;
+	LogOnMessage packet;
+	packet.Header.MsgID = Message::MSG_LOGON;
 	if (SOCKET_ERROR == sendto(sSocket, (CHAR*)&packet, sizeof(packet), 0, (LPSOCKADDR)&addr, sizeof(SOCKADDR_IN)))		return false;
 	// Wait for a reply or for a few seconds to pass
 	if (WAIT_TIMEOUT == WSAWaitForMultipleEvents(1, &hRecvEvent, TRUE, 3000, FALSE)) return false;
@@ -104,11 +143,15 @@ bool NetworkClient::ConnectToServer(std::string _ipAddress, SOCKET sSocket, HAND
 	int fromlen = sizeof(SOCKADDR_IN);
 	if (SOCKET_ERROR == (length = recvfrom(sSocket, buffer, sizeof(buffer), 0, (LPSOCKADDR)&src, &fromlen))) return false;
 
-	Messenger* pMh = (Messenger*)buffer;
-	if (pMh->action == Action::LogOn)
+	MessageHeader* pMh = (MessageHeader*)buffer;
+	if (pMh->MsgID == Message::MSG_LOGON)
 	{
-		Messenger * pUpm = (Messenger*)buffer;
-		id = pUpm->id;
+		LogOnMessage * msg = (LogOnMessage*)buffer;
+		id = msg->id;
+
+		NetworkEntity* newNet = new NetworkEntity(msg->id, Sprite::Create(L"Resources\\tank.png"));
+		this->SetSize(newNet->GetSize().x, newNet->GetSize().y);
+		entities->push_back(newNet);
 	}
 	// Connect to this address
 	connect(sSocket, (LPSOCKADDR)&src, sizeof(SOCKADDR_IN));
@@ -116,7 +159,7 @@ bool NetworkClient::ConnectToServer(std::string _ipAddress, SOCKET sSocket, HAND
 	// Success
 	return true;
 }
-bool NetworkClient::ProcessNetworkMessages(OtherPlayer * pPlayers, SOCKET sSocket, HANDLE hRecvEvent)
+bool NetworkClient::ProcessNetworkMessages(SOCKET sSocket, HANDLE hRecvEvent)
 {
 	if (WAIT_OBJECT_0 == WaitForSingleObject(hRecvEvent, 0))
 	{
@@ -131,33 +174,94 @@ bool NetworkClient::ProcessNetworkMessages(OtherPlayer * pPlayers, SOCKET sSocke
 		while (SOCKET_ERROR != (size = recvfrom(sSocket, buffer, sizeof(buffer), 0, (LPSOCKADDR)&addr, &fromlen)))
 		{
 			// Process information from the packet
-			hr = ProcessPacket(pPlayers, buffer, size);
+			hr = ProcessPacket(buffer, size);
 			if (hr == false) return hr;
 		}
 	}
 	// Success
 	return true;
 }
-bool NetworkClient::ProcessPacket(OtherPlayer * pPlayers, const CHAR * pBuffer, DWORD dwSize)
+bool NetworkClient::ProcessPacket(const CHAR * pBuffer, DWORD dwSize)
 {
-	MessageHeader * pMh = (MessageHeader*)pBuffer;
-	switch (pMh->MsgID)
+	Messenger* msg = (Messenger*)pBuffer;
+	switch (msg->action)
 	{
-	case MSG_UPDATEPLAYER:
+	case Action::UpdateObj:
 	{
-		UpdatePlayerMessage * pUpm = (UpdatePlayerMessage*)pBuffer;
-		return UpdateOtherPlayer(pUpm->dwPlayerID, &pPlayers[pUpm->dwPlayerID], pUpm);
+		if (msg->type == ObjectType::Player)
+		{
+			bool initPlayer = false;
+			for (size_t i = 0; i < entities->size(); i++)
+			{
+				if (msg->id == entities->at(i)->id)
+				{
+					initPlayer = true;
+					entities->at(i)->SetPosition(msg->position[0], msg->position[1]);
+					entities->at(i)->SetRotation(msg->rotation[0]);
+
+					if (msg->id == id)
+					{
+						int j = 0;
+						while (j < pendingInputs.size())
+						{
+							if (pendingInputs.at(j).inputSequenceNumber <= msg->inputSequenceNumber)
+							{
+								pendingInputs.erase(pendingInputs.begin() + j);
+								entities->at(i)->SetPosition(msg->position[0], msg->position[1]);
+								entities->at(i)->SetRotation(msg->rotation[0]);
+							}
+							else
+							{
+								if (pendingInputs.at(j).velocity[0] + pendingInputs.at(j).velocity[1] != 0)
+								{
+									entities->at(i)->SetPosition(entities->at(i)->GetPosition() + Vector2(pendingInputs.at(j).velocity[0], pendingInputs.at(j).velocity[1]));
+									entities->at(i)->SetRotation(pendingInputs.at(j).rotation[0]);
+								}
+								j++;
+							}
+						}
+					}
+				}
+			}
+			if (!initPlayer && msg->id != id)
+			{
+				NetworkEntity* newNet = new NetworkEntity(msg->id, Sprite::Create(L"Resources\\tank.png"));
+				this->SetSize(newNet->GetSize().x, newNet->GetSize().y);
+				entities->push_back(newNet);
+			}
+		}
 	}
-	case MSG_PLAYERLOGGEDOFF:
+	break;
+	case Action::Create:
 	{
-		PlayerLoggedOffMessage * pPlom = (PlayerLoggedOffMessage*)pBuffer;
-		pPlayers[pPlom->dwPlayerID].bActive = FALSE;
-	} break;
+		if (msg->type == ObjectType::Bullet)
+		{
+			Sprite* bullet = Sprite::Create(L"Resources\\Tank\\testbullet.bmp");
+			bullet->AddComponent<Rigidbody>(new Rigidbody());
+			bullet->SetPosition(msg->position[0], msg->position[1]);
+			//bullet->SetPosition(players[msg->id]->GetPosition());
+			bullet->GetComponent<Rigidbody>()->SetVelocity(msg->velocity[0], msg->velocity[1]);
+			Director::GetInstance()->GetScene()->AddChild(bullet);
+		}
+	}
+	break;
+	case Action::LogOff:
+	{
+		for (size_t i = 0; i < entities->size(); i++)
+		{
+			if (entities->at(i)->id == msg->id)
+				entities->erase(entities->begin() + i);
+		}
+		//if (players[msg->id]->isActive) players[msg->id]->isActive = false;
+	}
+	break;
+	default:
+		break;
 	}
 	// Success
 	return true;
 }
-bool NetworkClient::UpdateOtherPlayer(int _id, OtherPlayer * pPlayer, UpdatePlayerMessage * pUpm)
+bool NetworkClient::UpdateOtherPlayer(int _id, UpdateMessage * pUpm)
 {
 	bool initPlayer = false;
 	for (size_t i = 0; i < entities->size(); i++)
@@ -165,8 +269,8 @@ bool NetworkClient::UpdateOtherPlayer(int _id, OtherPlayer * pPlayer, UpdatePlay
 		if (entities->at(i)->id == _id)
 		{
 			initPlayer = true;
-			entities->at(i)->SetPosition(pUpm->fPosition[0], pUpm->fPosition[1]);
-			entities->at(i)->SetRotation(pUpm->fRotation[0]);
+			/*entities->at(i)->SetPosition(pUpm->fPosition[0], pUpm->fPosition[1]);
+			entities->at(i)->SetRotation(pUpm->fRotation[0]);*/
 		}
 	}
 	if (!initPlayer)
@@ -181,6 +285,9 @@ bool NetworkClient::UpdateOtherPlayer(int _id, OtherPlayer * pPlayer, UpdatePlay
 }
 void NetworkClient::DisconnectFromServer(SOCKET sSocket)
 {
-	LogOffMessage lom;
-	send(sSocket, (char*)&lom, sizeof(lom), 0);
+	Messenger logoffMessage;
+	logoffMessage.id = id;
+	logoffMessage.action = Action::LogOff;
+	logoffMessage.type = ObjectType::Player;
+	send(sSocket, (char*)&logoffMessage, sizeof(logoffMessage), 0);
 }

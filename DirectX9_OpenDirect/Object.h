@@ -23,6 +23,7 @@ protected:
 	Matrix m_Matrix;
 
 	std::string m_Name;
+	std::string m_Tag;
 
 public:
 	static Object* Create();
@@ -146,6 +147,13 @@ public:
 	}
 	virtual void SetName(const std::string& name) {
 		m_Name = name;
+	}
+
+	virtual const std::string& GetTag() const {
+		return m_Tag;
+	}
+	virtual void SetTag(const std::string& tag) {
+		m_Tag = tag;
 	}
 
 	virtual D3DXMATRIX GetMatrix() {

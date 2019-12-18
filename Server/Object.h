@@ -1,4 +1,5 @@
 #pragma once
+#include "Data.h"
 #include <iostream>
 struct Vector2
 {
@@ -28,11 +29,14 @@ public:
 	bool IsActive() { return isActive; }
 	void SetACtive(bool _active) { isActive = _active; }*/
 
-	std::string id, name, tag;
+	std::string name, tag;
+	int id;
 	bool isActive;
 	float floatRotation;
 	Vector2 position, rotation, scale, size, velocity;
+	ObjectType objType;
 
+	virtual void OnCollisionEnter(Vector2 normal);
 protected:
 	/*std::string id, name, tag;
 	bool isActive;

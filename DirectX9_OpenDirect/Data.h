@@ -2,11 +2,12 @@
 // Link header files required to compile the project
 #include "stdafx.h"
 #include <winsock2.h>   // Basic networking library
-#include <stdio.h>
 // Constants used in the program
 #define DECRYPT_STREAM_SIZE 512                             /* File decryption byte window */
 #define WINSOCK_VERSION     MAKEWORD(2,2)                   /* Use Winsock version 2.2 */
-#define SERVER_COMM_PORT    27192                           /* Connect to port 27192 */
+//#define SERVER_COMM_PORT    27192                           /* Connect to port 27192 */
+#define SERVER_COMM_PORT    8888                           /* Connect to port 8888 */
+//#define SERVER_COMM_PORT    3389                           /* Connect to port 3389 */
 #define MAX_PACKET_SIZE     1024                            /* Largest packet is 1024 bytes */
 #define MAX_USERS           16                              /* Maximum of 16 players */
 #define UPDATE_FREQUENCY        10                          /* Update 10 times per second */
@@ -34,30 +35,30 @@ struct MessageHeader
 {
 	Message MsgID;
 };
+struct LogOnMessage
+{
+	MessageHeader   Header;
+	int id;
+	float size[2];
+	LogOnMessage() { Header.MsgID = Message::MSG_LOGON; size[0] = size[1] = 0; }
+};
 struct LogOffMessage
 {
-	MessageHeader   Header;
-
-	LogOffMessage() { Header.MsgID = MSG_LOGOFF; }
+	MessageHeader Header;
+	int id;
+	LogOffMessage() { Header.MsgID = Message::MSG_LOGOFF; }
 };
-struct UpdatePlayerMessage
+struct UpdateMessage
 {
 	MessageHeader   Header;
-	DWORD           dwPlayerID;
-	FLOAT			tick;
-	FLOAT           fVelocity[3];
-	FLOAT           fPosition[3];
-	FLOAT           fRotation[3];
-	FLOAT           fSize[3];
-	BOOL			shoot;
-	UpdatePlayerMessage() { Header.MsgID = MSG_UPDATEPLAYER; }
-};
-struct PlayerLoggedOffMessage
-{
-	MessageHeader   Header;
-	DWORD           dwPlayerID;
-
-	PlayerLoggedOffMessage() { Header.MsgID = MSG_PLAYERLOGGEDOFF; }
+	DWORD           id;
+	float			tick;
+	float           fVelocity[3];
+	//float           fPosition[3];
+	float           fRotation[3];
+	//float           fSize[3];
+	bool			shoot;
+	UpdateMessage() { Header.MsgID = MSG_UPDATEPLAYER; }
 };
 enum Action
 {
@@ -73,6 +74,7 @@ enum Action
 };
 enum ObjectType
 {
+	SimpleObject,
 	Player,
 	Bullet,
 	Brick,
@@ -80,14 +82,20 @@ enum ObjectType
 struct Messenger
 {
 	int id;
+	int inputSequenceNumber;
+	unsigned long tick;
 	Action action;
-	float position[3], rotation[3], size[3], velocity[3];
-	Messenger() 
+	ObjectType type;
+	float position[2], rotation[2], size[2], velocity[2];
+	Messenger()
 	{
+		tick = 0;
+		inputSequenceNumber = 0;
+		type = SimpleObject;
 		id = 0;
-		position[0] = position[1] = position[2] = 0;
-		rotation[0] = rotation[1] = rotation[2] = 0;
-		size[0] = size[1] = size[2] = 0;
-		velocity[0] = velocity[1] = velocity[2] = 0;
+		position[0] = position[1] = 0;
+		rotation[0] = rotation[1] = 0;
+		velocity[0] = velocity[1] = 0;
+		size[0] = size[1] = 0;
 	}
 };

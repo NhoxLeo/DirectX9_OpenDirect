@@ -42,6 +42,7 @@ public:
 
 	void AddChild(Object* obj);
 	void RemoveChild(Object* obj);
+	std::vector<Object*> GetChildren() { return m_Children; }
 
 	void CalculateAnchorPointInPoint();
 	void CalculateMatrix();

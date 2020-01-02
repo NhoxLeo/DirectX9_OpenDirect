@@ -27,6 +27,8 @@ bool TestMapScene::Initialize() {
 void TestMapScene::InitializeUI() {
 	isServer = true;
 	GetCamera()->Translate(0, 0);
+	fireRate = 0.5f;
+	fireTime = 0;
 
 	string ip = "127.0.0.1";
 
@@ -44,15 +46,13 @@ void TestMapScene::InitializeUI() {
 	tilemap->SetPosition(0, 0);
 	AddChild(tilemap);
 
-	//tilemap->EraseObject(12);
-	//tilemap->EraseObject(674);
-
 	networkClient = new NetworkClient(ip);
 	AddChild(networkClient);
 
 	/*entity = Sprite::Create(L"Resources\\tank.png");
 	entity->SetSize(16, 16);
-	entity->AddComponent<BoxCollider>(new BoxCollider());
+	entity->SetPosition(100, 20);
+	entity->SetTag("Player");
 	AddChild(entity);
 	entity->AddComponent<Rigidbody>(new Rigidbody());*/
 }
@@ -61,25 +61,77 @@ void TestMapScene::Update(float deltaTime) {
 	Scene::Update(deltaTime);
 	//UpdateCamera();
 
-	/*entity->GetComponent<Rigidbody>()->SetVelocity(
-		(Input::GetInstance()->GetKeyState('A') == KeyState::Pressed) ? -1 : ((Input::GetInstance()->GetKeyState('D') == KeyState::Pressed) ? 1 : 0)
-		, (Input::GetInstance()->GetKeyState('W') == KeyState::Pressed) ? -1 : ((Input::GetInstance()->GetKeyState('S') == KeyState::Pressed) ? 1 : 0));
-	if (entity->GetComponent<Rigidbody>()->GetVelocity().x != 0 || entity->GetComponent<Rigidbody>()->GetVelocity().y != 0)
-	{
-		entity->SetRotation(180 * 3.14f / 180);
-	}
-	Vector2 normalVector = Vector2(0, 0);
-	for (size_t j = 0; j < m_Children.size(); j++)
-	{
-		float normalX, normalY;
-		int checkAABB = collisionManager->CheckSweptAABB(entity, m_Children.at(j), normalX, normalY);
-		if (checkAABB < 1) normalVector = Vector2(normalX, normalY);
-		else if (checkAABB == 1) if (normalX > 0 || normalY > 0) normalVector = Vector2(normalX, normalY);
-	}
-	entity->SetPosition(entity->GetPosition() + entity->GetComponent<Rigidbody>()->GetVelocity() + normalVector);*/
-
+	//if (Input::GetInstance()->GetKeyState('Q') == KeyState::Pressed && fireTime > fireRate)
+	//{
+	//	fireTime = 0;
+	//	Sprite* bullet = Sprite::Create(L"Resources\\Tank\\testbullet.bmp");
+	//	bullet->SetTag("Bullet");
+	//	bullet->AddComponent<Rigidbody>(new Rigidbody());
+	//	bullet->SetPosition(entity->GetPosition().x, entity->GetPosition().y);
+	//	bullet->GetComponent<Rigidbody>()->SetVelocity(entity->GetComponent<Rigidbody>()->GetVelocity().x, entity->GetComponent<Rigidbody>()->GetVelocity().y);
+	//	AddChild(bullet);
+	//}
+	//if (fireTime <= fireRate) fireTime += deltaTime;
+	//entity->GetComponent<Rigidbody>()->SetVelocity(
+	//	(Input::GetInstance()->GetKeyState('A') == KeyState::Pressed) ? -0.5f : ((Input::GetInstance()->GetKeyState('D') == KeyState::Pressed) ? 0.5f : 0)
+	//	, (Input::GetInstance()->GetKeyState('W') == KeyState::Pressed) ? -0.5f : ((Input::GetInstance()->GetKeyState('S') == KeyState::Pressed) ? 0.5f : 0));
+	//if (entity->GetComponent<Rigidbody>()->GetVelocity().x != 0 || entity->GetComponent<Rigidbody>()->GetVelocity().y != 0) entity->SetRotation(180 * 3.14f / 180);
+	//Vector2 normalVector = Vector2(0, 0);
+	//float normalX, normalY;
+	//for (size_t i = 0; i < m_Children.size(); i++)
+	//{
+	//	if (m_Children.at(i)->GetTag() == "Player")
+	//	{
+	//		for (size_t j = 0; j < m_Children.size(); j++)
+	//		{
+	//			if (j != i)
+	//			{
+	//				int checkAABB = collisionManager->CheckSweptAABB(m_Children.at(i), m_Children.at(j), normalX, normalY);
+	//				if (checkAABB < 1)
+	//					normalVector = Vector2(normalX, normalY);
+	//				else if (checkAABB == 1)
+	//					if (normalX > 0 || normalY > 0) normalVector = Vector2(normalX, normalY);
+	//			}
+	//		}
+	//	}
+	//	else if (m_Children.at(i)->GetTag() == "Bullet")
+	//	{
+	//		for (size_t j = 0; j < m_Children.size(); j++)
+	//		{
+	//			if (j != i && m_Children.at(j)->GetTag() != "Player")
+	//			{
+	//				Object* bullet = m_Children.at(i);
+	//				Object* obj = m_Children.at(j);
+	//				int checkAABB = collisionManager->CheckSweptAABB(bullet, m_Children.at(j), normalX, normalY);
+	//				if (checkAABB < 1)
+	//				{
+	//					tilemap->EraseObject(obj->GetPosition());
+	//					m_Children.erase(m_Children.begin() + i);
+	//					m_Children.erase(m_Children.begin() + j);
+	//					normalVector = Vector2(normalX, normalY);
+	//					break;
+	//				}
+	//				else if (checkAABB == 1) if (normalX > 0 || normalY > 0) normalVector = Vector2(normalX, normalY);
+	//				//if (bullet->GetPosition().x < obj->GetPosition().x + obj->GetSize().x
+	//				//	&& bullet->GetPosition().x + bullet->GetSize().x > obj->GetPosition().x
+	//				//	&& bullet->GetPosition().y < obj->GetPosition().y + obj->GetSize().y
+	//				//	&& bullet->GetPosition().y + bullet->GetSize().y > obj->GetPosition().y)
+	//				//{
+	//				//	//tilemap->GetAllObjects().erase(tilemap->GetAllObjects().begin() + j);
+	//				//	//tilemap->EraseObject(std::stoi(obj->GetName()));
+	//				//	tilemap->EraseObject(obj->GetPosition());
+	//				//	m_Children.erase(m_Children.begin() + i);
+	//				//	m_Children.erase(m_Children.begin() + j);
+	//				//	break;
+	//				//}
+	//			}
+	//		}
+	//	}
+	//}
+	//entity->SetPosition(entity->GetPosition() + entity->GetComponent<Rigidbody>()->GetVelocity() + normalVector);
 }
 void TestMapScene::Render() {
+	this->block1;
 	Object::Render();
 }
 void TestMapScene::UpdateCamera() {

@@ -1,5 +1,5 @@
 #include "NetworkClient.h"
-
+#include "Tilemap.h"
 
 NetworkClient::NetworkClient()
 {
@@ -17,18 +17,27 @@ NetworkClient::NetworkClient(std::string _ipAddress)
 	if (InitializeWinsock(&sSocket, &hRecvEvent) && ConnectToServer(_ipAddress, sSocket, hRecvEvent));
 	else cout << "failed";
 	for (size_t i = 0; i < MAX_USERS; i++) players[i] = new NetworkEntity(i, Sprite::Create(L"Resources\\tank.png"));
+	allThreadRunning = true;
+
+	fireRate = 0.5f;
+	fireTime = 0;
+
+	clientThread = std::thread(&NetworkClient::NetworkThread, this, sSocket, hRecvEvent);
 }
 NetworkClient::~NetworkClient()
 {
+	allThreadRunning = false;
 	DisconnectFromServer(sSocket);
+	clientThread.join();
+	Object::~Object();
 }
 void NetworkClient::Update(float deltaTime)
 {
 	int x = 0, y = 0;
-	if (Input::GetInstance()->GetKeyState('A') == KeyState::Pressed) x = -1;
-	if (Input::GetInstance()->GetKeyState('D') == KeyState::Pressed) x = 1;
 	if (Input::GetInstance()->GetKeyState('W') == KeyState::Pressed) y = -1;
+	if (Input::GetInstance()->GetKeyState('A') == KeyState::Pressed) x = -1;
 	if (Input::GetInstance()->GetKeyState('S') == KeyState::Pressed) y = 1;
+	if (Input::GetInstance()->GetKeyState('D') == KeyState::Pressed) x = 1;
 
 	Object::Update(deltaTime);
 	//for (size_t i = 0; i < entities->size(); i++) entities->at(i)->Update(deltaTime);
@@ -47,13 +56,17 @@ void NetworkClient::Update(float deltaTime)
 	msg.size[0] = this->GetSize().x;
 	msg.size[1] = this->GetSize().y;
 	msg.inputSequenceNumber = input_sequence_number++;
+	pendingInputs.push_back(msg);
+	int sendInt = send(sSocket, (CHAR*)&msg, sizeof(msg), 0);
 
-	if (Input::GetInstance()->GetKeyState('K') == KeyState::Pressed)
+	if (Input::GetInstance()->GetKeyState('Q') == KeyState::Pressed && fireTime > fireRate)
 	{
+		fireTime = 0;
 		Messenger shootMessage;
 		shootMessage.type = ObjectType::Bullet;
 		shootMessage.action = Action::Create;
 		shootMessage.id = id;
+		shootMessage.tick = GetTickCount();
 		for (size_t i = 0; i < entities->size(); i++)
 		{
 			if (entities->at(i)->id == id)
@@ -67,16 +80,10 @@ void NetworkClient::Update(float deltaTime)
 		int a = sizeof(shootMessage);
 		send(sSocket, (CHAR*)&shootMessage, sizeof(shootMessage), 0);
 	}
+	if (fireTime <= fireRate) fireTime += deltaTime;
 
-
-	pendingInputs.push_back(msg);
-	// Send off the packet
-	int sendInt = send(sSocket, (CHAR*)&msg, sizeof(msg), 0);
-
-	// Update the messages from the server
-	ProcessNetworkMessages(sSocket, hRecvEvent);
-
-
+	//// Update the messages from the server
+	//ProcessNetworkMessages(sSocket, hRecvEvent);
 	////cout << pendingInputs.size() << "\n";
 
 }
@@ -237,9 +244,9 @@ bool NetworkClient::ProcessPacket(const CHAR * pBuffer, DWORD dwSize)
 		if (msg->type == ObjectType::Bullet)
 		{
 			Sprite* bullet = Sprite::Create(L"Resources\\Tank\\testbullet.bmp");
+			bullet->SetTag("Bullet");
 			bullet->AddComponent<Rigidbody>(new Rigidbody());
 			bullet->SetPosition(msg->position[0], msg->position[1]);
-			//bullet->SetPosition(players[msg->id]->GetPosition());
 			bullet->GetComponent<Rigidbody>()->SetVelocity(msg->velocity[0], msg->velocity[1]);
 			Director::GetInstance()->GetScene()->AddChild(bullet);
 		}
@@ -253,6 +260,26 @@ bool NetworkClient::ProcessPacket(const CHAR * pBuffer, DWORD dwSize)
 				entities->erase(entities->begin() + i);
 		}
 		//if (players[msg->id]->isActive) players[msg->id]->isActive = false;
+	}
+	break;
+	case Action::Destroy:
+	{
+		std::vector<Object*> objList = Director::GetInstance()->GetScene()->GetComponent<Tilemap>()->GetChildren();
+		for (size_t i = 0; i < objList.size(); i++)
+		{
+			Object* obj = objList.at(i);
+			if (obj->GetPosition().x == msg->position[0] && obj->GetPosition().y == msg->position[1])
+			{
+				int a = 1;
+				//Director::GetInstance()->GetScene()->RemoveChild(obj);
+				Director::GetInstance()->GetScene()->GetComponent<Tilemap>()->RemoveChild(obj);
+				for (size_t i = 0; i < Director::GetInstance()->GetScene()->GetChildren().size(); i++)
+				{
+					Object* obj = Director::GetInstance()->GetScene()->GetChildren().at(i);
+					if (obj->GetTag() == "Bullet")  Director::GetInstance()->GetScene()->RemoveChild(obj);
+				}
+			}
+		}
 	}
 	break;
 	default:
@@ -290,4 +317,13 @@ void NetworkClient::DisconnectFromServer(SOCKET sSocket)
 	logoffMessage.action = Action::LogOff;
 	logoffMessage.type = ObjectType::Player;
 	send(sSocket, (char*)&logoffMessage, sizeof(logoffMessage), 0);
+}
+
+void NetworkClient::NetworkThread(SOCKET _socket, HANDLE _recvEvent)
+{
+	while (allThreadRunning)
+	{
+		// Update the messages from the server
+		ProcessNetworkMessages(sSocket, hRecvEvent);
+	}
 }

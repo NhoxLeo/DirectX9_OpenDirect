@@ -1,6 +1,7 @@
 #pragma once
 #include "stdafx.h"
 #include "Data.h"
+#include<thread>
 //#pragma comment (lib,"Ws2_32.lib") // For Release only
 
 
@@ -23,6 +24,11 @@ public:
 	std::vector<Messenger> pendingInputs;
 	int input_sequence_number = 0;
 
+	float fireRate,fireTime;
+
+	std::thread clientThread;
+	bool allThreadRunning;
+
 	float deltatime;
 	void Update(float deltaTime) override;
 	void Render() override;
@@ -33,5 +39,6 @@ public:
 	bool ProcessPacket(const CHAR * pBuffer, DWORD dwSize);
 	bool UpdateOtherPlayer(int _id, UpdateMessage * pUpm);
 	void DisconnectFromServer(SOCKET sSocket);
+	void NetworkThread(SOCKET _socket, HANDLE _recvEvent);
 };
 

@@ -34,7 +34,6 @@ std::vector<int>* dataMap;
 std::vector<Object*>* staticObjs;
 std::vector<Object*>* dynamicObjs;
 std::deque<std::vector<Object*>*>* lastFrameObjectsInfo;
-std::vector<Object> lateFrameObjects[MAX_LATE_FRAMES];
 
 BOOL WaitForPackets()
 {
@@ -69,27 +68,52 @@ HRESULT ProcessUserPacket(User * pUser, const CHAR * pBuffer, DWORD dwSize)
 		pUser->size.y = msg->size[1];
 		pUser->tick = msg->tick;
 		pUser->inputSequenceNumber = msg->inputSequenceNumber;
-		int lateFramesCount = 0;
-		//std::vector<Object>* thisFrameUserData = new std::vector<Object>();
-		//if (pUser->IsConnected())
-		//{
-		//	lateFramesCount = (int)(((int)GetTickCount() - msg->tick) / 16.67f);
-		//	if (lateFramesCount > 0)
-		//	{
-		//		for (int k = MAX_USERS - lateFramesCount - 1; k < lastFrameObjectsInfo->size(); ++k);
-		//		//lastFrameObjectsInfo->at(k)->push_back(*pUser);
-		//		//lateFrameObjects[lateFramesCount - 1].push_back(g_Users[i]);
-		//	}
-		//	thisFrameUserData->push_back(*pUser);
-		//	if (lastFrameObjectsInfo->size() > MAX_LATE_FRAMES - 1) lastFrameObjectsInfo->pop_front();
-		//	lastFrameObjectsInfo->push_back(thisFrameUserData);
-		//}
 	}
 	break;
 	case Action::Create:
 	{
-		//Object* bullet = new Object();
-		int id = msg->id;
+		Object* bullet = new Object();
+		bullet->objType = ObjectType::Bullet;
+		bullet->id = msg->id;
+		bullet->position.x = msg->position[0];
+		bullet->position.y = msg->position[1];
+		bullet->velocity.x = msg->velocity[0];
+		bullet->velocity.y = msg->velocity[1];
+		bullet->size.x = bullet->size.y = 32;
+		dynamicObjs->push_back(bullet);
+
+		//late frames physics
+		int lateFramesCount = (int)(((int)GetTickCount() - msg->tick) / 16.67f);
+		if (lateFramesCount > 0)
+		{
+			//Late Frame Physics
+			while (lateFramesCount < MAX_LATE_FRAMES && lastFrameObjectsInfo->size()>0)
+			{
+				for (int objVectorIndex = lateFramesCount; objVectorIndex < lastFrameObjectsInfo->size(); objVectorIndex++)
+				{
+					Vector2 normalVector;
+					normalVector.x = normalVector.y = 0;
+					for (int objIndex = 0; objIndex < lastFrameObjectsInfo->at(objVectorIndex)->size(); objIndex++)
+					{
+						if (lastFrameObjectsInfo->at(objVectorIndex)->at(objIndex)->id != bullet->id);
+						{
+							Object* obj = lastFrameObjectsInfo->at(objVectorIndex)->at(objIndex);
+							if (bullet->position.x < obj->position.x + obj->size.x
+								&& bullet->position.x + bullet->size.x > obj->position.x
+								&& bullet->position.y < obj->position.y + obj->size.y
+								&& bullet->position.y + bullet->size.y > obj->position.y)
+							{
+								// collision detected!
+								int a = 1;
+							}
+						}
+					}
+					bullet->OnCollisionEnter(normalVector);
+				}
+				lateFramesCount++;
+			}
+		}
+
 		for (DWORD k = 0; k < MAX_USERS; ++k) if ((g_Users[k].IsConnected())) g_Users[k].SendPacket((CHAR*)msg, sizeof(*msg));
 	}
 	break;
@@ -262,44 +286,21 @@ void LoadWorld(const wchar_t * _txtPath)
 }
 void Update(float _deltaTime)
 {
-	//std::vector<Object*>* thisFrameUserData = new std::vector<Object*>();
+	std::vector<Object*>* thisFrameUserData = new std::vector<Object*>();
 	Vector2 normalVector;
 	normalVector.x = normalVector.y = 0;
 	//Physics
 	for (int i = 0; i < dynamicObjs->size(); ++i)
 	{
-		//thisFrameUserData->push_back(dynamicObjs->at(i));
-		if (dynamicObjs->at(i)->objType == ObjectType::Player)
+		if (dynamicObjs->at(i)->objType == ObjectType::Player) thisFrameUserData->push_back(dynamicObjs->at(i));
+		for (int j = 0; j < dynamicObjs->size(); ++j)
 		{
-			for (int j = 0; j < dynamicObjs->size(); ++j)
-			{
-				if (dynamicObjs->at(j)->objType == ObjectType::Player && j == i);
-				else
-				{
-					float normalX, normalY;
-					int checkAABB = CollisionManager::GetInstance()->CheckSweptAABB(dynamicObjs->at(i), dynamicObjs->at(j), normalX, normalY);
-					if (checkAABB < 1)
-					{
-						normalVector.x = normalX;
-						normalVector.y = normalY;
-					}
-					else if (checkAABB == 1)
-					{
-						if (normalX > 0 || normalY > 0)
-						{
-							normalVector.x = normalX;
-							normalVector.y = normalY;
-						}
-					}
-				}
-			}
-			for (int j = 0; j < staticObjs->size(); j++)
+			if (j != i)
 			{
 				float normalX, normalY;
-				int checkAABB = CollisionManager::GetInstance()->CheckSweptAABB(dynamicObjs->at(i), staticObjs->at(j), normalX, normalY);
+				int checkAABB = CollisionManager::GetInstance()->CheckSweptAABB(dynamicObjs->at(i), dynamicObjs->at(j), normalX, normalY);
 				if (checkAABB < 1)
 				{
-					Object*a = staticObjs->at(j);
 					normalVector.x = normalX;
 					normalVector.y = normalY;
 				}
@@ -307,20 +308,52 @@ void Update(float _deltaTime)
 				{
 					if (normalX > 0 || normalY > 0)
 					{
-						Object*a = staticObjs->at(j);
 						normalVector.x = normalX;
 						normalVector.y = normalY;
 					}
 				}
 			}
-			// Apply Velocity to players after physics
-			//for (int k = 0; k < MAX_USERS; ++k) if (g_Users[k].id == dynamicObjs->at(i)->id) g_Users[k].OnCollisionEnter(normalVector);
-			dynamicObjs->at(i)->OnCollisionEnter(normalVector);
+		}
+		for (int j = 0; j < staticObjs->size(); j++)
+		{
+			float normalX, normalY;
+			int checkAABB = CollisionManager::GetInstance()->CheckSweptAABB(dynamicObjs->at(i), staticObjs->at(j), normalX, normalY);
+			if (checkAABB < 1)
+			{
+				normalVector.x = normalX;
+				normalVector.y = normalY;
+
+				if (dynamicObjs->at(i)->objType == ObjectType::Bullet)
+				{
+					Messenger msg;
+					msg.action = Action::Destroy;
+					msg.position[0] = staticObjs->at(j)->position.x;
+					msg.position[1] = staticObjs->at(j)->position.y;
+					for (DWORD k = 0; k < MAX_USERS; ++k)if (g_Users[k].IsConnected()) g_Users[k].SendPacket((CHAR*)&msg, sizeof(msgs));
+					staticObjs->erase(staticObjs->begin() + j);
+					break;
+				}
+			}
+			else if (checkAABB == 1)
+			{
+				if (normalX > 0 || normalY > 0)
+				{
+					normalVector.x = normalX;
+					normalVector.y = normalY;
+				}
+			}
+		}
+		//if (dynamicObjs->at(i)->objType == ObjectType::Player)
+		dynamicObjs->at(i)->OnCollisionEnter(normalVector);
+		if (dynamicObjs->at(i)->objType == ObjectType::Bullet && normalVector.x + normalVector.y != 0)
+		{
+			dynamicObjs->erase(dynamicObjs->begin() + i);
+			break;
 		}
 	}
 
-	//if (lastFrameObjectsInfo->size() > MAX_LATE_FRAMES - 1) lastFrameObjectsInfo->pop_front();
-	//lastFrameObjectsInfo->push_back(thisFrameUserData);
+	if (lastFrameObjectsInfo->size() > MAX_LATE_FRAMES - 1) lastFrameObjectsInfo->pop_front();
+	lastFrameObjectsInfo->push_back(thisFrameUserData);
 
 	//Create the sending Message
 	for (int i = 0; i < MAX_USERS; ++i)
@@ -419,7 +452,6 @@ int main()
 	//Initiate game world
 	LoadWorld(L"Resources\\Level1.txt");
 	lastFrameObjectsInfo = new std::deque<std::vector<Object*>*>();
-	int index = 0;
 	while (true)
 	{
 		float curTime = (float)clock() / CLOCKS_PER_SEC;
@@ -428,26 +460,8 @@ int main()
 		_deltaTime = _totalTime - _lastTime;
 		if (_deltaTime >= tickPerFrame)
 		{
-			index = 0;
 			_lastTime += tickPerFrame;
 			//// Update
-
-			////Late Frame Physics
-			//if (index < MAX_LATE_FRAMES && lastFrameObjectsInfo->size()>0)
-			//{
-			//	if (lateFrameObjects[index].size() > 0)
-			//	{
-			//		for (int o = 0; o < lateFrameObjects[index].size(); o++)
-			//		{
-			//			for (int p = 0; p < lastFrameObjectsInfo->at(index)->size(); p++)
-			//			{
-			//				//AABB
-			//			}
-			//		}
-			//	}
-			//	index++;
-			//}
-
 			Update(_deltaTime);
 		}
 		else Sleep((tickPerFrame - _deltaTime) * 1000.0f);

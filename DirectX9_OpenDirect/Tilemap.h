@@ -11,7 +11,9 @@ public:
 	void Update(float deltaTime) override;
 	void Render() override;
 	void EraseObject(int id);
+	void EraseObject(Vector2 objPosition);
 	vector<int>* dataMap;
+	std::vector<Object*> GetAllObjects() { return objList; };
 private:
 	Sprite* tileSprite;
 	bool initialized = false;

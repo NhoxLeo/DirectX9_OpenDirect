@@ -19,6 +19,7 @@ private:
 	CollisionManager* collisionManager;
 	Tilemap* tilemap;
 
+	float fireRate, fireTime;
 public:
 	TestMapScene();
 	~TestMapScene();

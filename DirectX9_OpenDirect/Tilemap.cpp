@@ -42,13 +42,18 @@ Tilemap::Tilemap(Sprite * sprite, const wchar_t * _imagePath, const wchar_t * _t
 		for (size_t j = 0; j < 26; j++)
 		{
 			int _index = dataMap->at((i * 26) + j);
-			Object* obj = new Object();
-			obj->SetPosition(j * 16, i * 16);
-			obj->SetName(std::to_string((i * 26) + j));
-			if (_index == 4)obj->SetTag("Brick");
-			else if (_index == 13)obj->SetTag("Wall");
-			else if (_index == 49 || _index == 50 || _index == 53 || _index == 54) obj->SetTag("Eagle");
-			objList.push_back(obj);
+			if (_index != 0)
+			{
+				Object* obj = new Object();
+				obj->SetName(std::to_string((i * 26) + j));
+				obj->SetSize(16, 16);
+				obj->SetPosition(Vector2(j * 16, i * 16) + obj->GetSize() / 2);
+				if (_index == 4)obj->SetTag("Brick");
+				else if (_index == 13)obj->SetTag("Wall");
+				else if (_index == 49 || _index == 50 || _index == 53 || _index == 54) obj->SetTag("Eagle");
+				AddChild(obj);
+				//objList.push_back(obj);
+			}
 		}
 	}
 
@@ -64,14 +69,22 @@ Tilemap::~Tilemap()
 void Tilemap::Update(float deltaTime)
 {
 	Object::Update(deltaTime);
+	if (!initialized)
+	{
+		initialized = !initialized;
+		for (size_t i = 0; i < objList.size(); i++)
+		{
+			Director::GetInstance()->GetScene()->AddChild(objList.at(i));
+		}
+	}
 }
 
 void Tilemap::Render()
 {
 	Object::Render();
-	for (size_t i = 0; i < objList.size(); i++)
+	for (size_t i = 0; i < m_Children.size(); i++)
 	{
-		string tag = objList.at(i)->GetTag();
+		string tag = m_Children.at(i)->GetTag();
 		int _index = 0;
 		if (tag == "Brick")			_index = 4;
 		else if (tag == "Wall")			_index = 13;
@@ -82,7 +95,7 @@ void Tilemap::Render()
 		{
 			int _tileRow = (int)(_index / 20);
 			int _tileColumn = _index % 20;
-			tileSprite->SetPosition(objList.at(i)->GetPosition());
+			tileSprite->SetPosition(m_Children.at(i)->GetPosition() - m_Children.at(i)->GetSize() / 2);
 			RECT rect;
 			rect.top = (_tileRow) * 16;
 			rect.bottom = (_tileRow + 1) * 16;
@@ -98,7 +111,14 @@ void Tilemap::EraseObject(int id)
 {
 	for (int i = 0; i < objList.size(); i++)
 	{
-		if(objList.at(i)->GetName() == std::to_string(id))
-			objList.erase(objList.begin() + i);
+		if (objList.at(i)->GetName() == std::to_string(id)) objList.erase(objList.begin() + i);
+	}
+}
+
+void Tilemap::EraseObject(Vector2 objPosition)
+{
+	for (int i = 0; i < objList.size(); i++)
+	{
+		if (objList.at(i)->GetPosition().x == objPosition.x && objList.at(i)->GetPosition().y == objPosition.y)  objList.erase(objList.begin() + i);;
 	}
 }

@@ -122,6 +122,9 @@
     <ClInclude Include="Tilemap.h">
       <Filter>Framework\Header Files\Components</Filter>
     </ClInclude>
+    <ClInclude Include="MemoryBitStream.h">
+      <Filter>Framework\Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TestMapScene.cpp">
@@ -190,6 +193,9 @@
     <ClCompile Include="WinMain.cpp" />
     <ClCompile Include="Tilemap.cpp">
       <Filter>Framework\Source Files\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="MemoryBitStream.cpp">
+      <Filter>Framework\Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

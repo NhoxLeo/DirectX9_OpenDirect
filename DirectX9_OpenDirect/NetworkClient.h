@@ -1,6 +1,7 @@
 #pragma once
 #include "stdafx.h"
 #include "Data.h"
+#include "MemoryBitStream.h"
 #include<thread>
 //#pragma comment (lib,"Ws2_32.lib") // For Release only
 
@@ -17,8 +18,14 @@ public:
 	std::string ipAddress;
 	SOCKET sSocket;
 	HANDLE hRecvEvent;
-	NetworkEntity* players[MAX_USERS];
 	std::vector<NetworkEntity*>* entities;
+	std::vector<Object*>* bullets;
+	NetworkEntity* thisEntity;
+	bool isConnected;
+	ID3DXFont* my_font;
+	bool isAlive;
+	Vector2 currentPosition;
+	Vector2 normalVec;
 
 	Messenger* serverCurrentInput = NULL;
 	std::vector<Messenger> pendingInputs;

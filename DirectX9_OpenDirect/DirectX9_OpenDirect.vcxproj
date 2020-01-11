@@ -150,6 +150,7 @@
     <ClInclude Include="Data.h" />
     <ClInclude Include="Director.h" />
     <ClInclude Include="Input.h" />
+    <ClInclude Include="MemoryBitStream.h" />
     <ClInclude Include="NetworkClient.h" />
     <ClInclude Include="NetworkEntity.h" />
     <ClInclude Include="Object.h" />
@@ -178,6 +179,7 @@
     <ClCompile Include="CollisionManager.cpp" />
     <ClCompile Include="Director.cpp" />
     <ClCompile Include="Input.cpp" />
+    <ClCompile Include="MemoryBitStream.cpp" />
     <ClCompile Include="NetworkClient.cpp" />
     <ClCompile Include="NetworkEntity.cpp" />
     <ClCompile Include="Object.cpp" />

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 #include <winsock2.h>
 #include <stdio.h>
@@ -10,7 +10,22 @@
 //#define SERVER_COMM_PORT    3389
 #define MAX_PACKET_SIZE     1024
 #define MAX_USERS           16
-#define MAX_LATE_FRAMES		10
+#define MAX_LATE_FRAMES		20
+
+namespace Define {
+	const int NBit_PacketType = 4; // type [0, 8]
+	const int NBit_EntityID = 10; // entity ID [0, 1023]
+	const int NBit_Position = 14; // X * 10 hoặc Y * 10 [0, 16383]
+	const int NBit_PacketID = 20; // thuộc loại ID++ theo thời gian [0, 1048576]
+	const int NBit_Time = 32; // thời gian TickCount [-2147483648, 2147483647]
+	const int NBit_PlayerID = 2; // ID người chơi [0, 3]
+	const int NBit_RoomID = 2; // RoomID [0, 3]
+	const int NBit_EntityHP = 2; // máu [0, 3]
+	const int NBit_Direction = 3; // hướng di chuyển [0, 4]
+	const int NBit_NPlayersInRoom = 3; // số lượng người chơi trong phòng [0, 4]
+	//const int NBit_Position = 15;
+}
+
 enum Message
 {
 	MSG_LOGON,
@@ -61,7 +76,8 @@ enum Action
 	Dead,
 	Create,
 	UpdateObj,
-	Destroy
+	Destroy,
+	Ping
 };
 enum ObjectType
 {
@@ -72,6 +88,7 @@ enum ObjectType
 };
 struct Messenger
 {
+	int room;
 	int id;
 	int inputSequenceNumber;
 	unsigned long tick;
@@ -80,6 +97,7 @@ struct Messenger
 	float position[2], rotation[2], size[2], velocity[2];
 	Messenger()
 	{
+		room = 0;
 		tick = 0;
 		inputSequenceNumber = 0;
 		type = SimpleObject;

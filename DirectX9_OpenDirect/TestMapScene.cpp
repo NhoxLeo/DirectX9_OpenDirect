@@ -30,16 +30,16 @@ void TestMapScene::InitializeUI() {
 	fireRate = 0.5f;
 	fireTime = 0;
 
-	string ip = "127.0.0.1";
+	//string ip = "127.0.0.1";
 
-	/*FILE *stream;
+	FILE *stream;
 	AllocConsole();
 	freopen_s(&stream, "CONIN$", "r+t", stdin);
 	freopen_s(&stream, "CONOUT$", "w+t", stdout);
-	freopen_s(&stream, "CONOUT$", "w+t", stderr);*/
-	/*string ip;
+	freopen_s(&stream, "CONOUT$", "w+t", stderr);
+	string ip;
 	cout << "Type in the server address \n";
-	cin >> ip;*/
+	cin >> ip;
 
 	tilemap = new Tilemap(Sprite::Create(L"Resources\\Level1.bmp"), L"Resources\\Level1.bmp", L"Resources\\Level1.txt", 20, 3, 26, 26, "Level1");
 	tilemap->SetAnchorPoint(0.f, 0.f);
@@ -61,17 +61,17 @@ void TestMapScene::Update(float deltaTime) {
 	Scene::Update(deltaTime);
 	//UpdateCamera();
 
-	//if (Input::GetInstance()->GetKeyState('Q') == KeyState::Pressed && fireTime > fireRate)
-	//{
-	//	fireTime = 0;
-	//	Sprite* bullet = Sprite::Create(L"Resources\\Tank\\testbullet.bmp");
-	//	bullet->SetTag("Bullet");
-	//	bullet->AddComponent<Rigidbody>(new Rigidbody());
-	//	bullet->SetPosition(entity->GetPosition().x, entity->GetPosition().y);
-	//	bullet->GetComponent<Rigidbody>()->SetVelocity(entity->GetComponent<Rigidbody>()->GetVelocity().x, entity->GetComponent<Rigidbody>()->GetVelocity().y);
-	//	AddChild(bullet);
-	//}
-	//if (fireTime <= fireRate) fireTime += deltaTime;
+	/*if (Input::GetInstance()->GetKeyState('Q') == KeyState::Pressed && fireTime > fireRate)
+	{
+		fireTime = 0;
+		Sprite* bullet = Sprite::Create(L"Resources\\Tank\\testbullet.bmp");
+		bullet->SetTag("Bullet");
+		bullet->AddComponent<Rigidbody>(new Rigidbody());
+		bullet->SetPosition(entity->GetPosition().x, entity->GetPosition().y);
+		bullet->GetComponent<Rigidbody>()->SetVelocity(entity->GetComponent<Rigidbody>()->GetVelocity().x, entity->GetComponent<Rigidbody>()->GetVelocity().y);
+		AddChild(bullet);
+	}
+	if (fireTime <= fireRate) fireTime += deltaTime;*/
 	//entity->GetComponent<Rigidbody>()->SetVelocity(
 	//	(Input::GetInstance()->GetKeyState('A') == KeyState::Pressed) ? -0.5f : ((Input::GetInstance()->GetKeyState('D') == KeyState::Pressed) ? 0.5f : 0)
 	//	, (Input::GetInstance()->GetKeyState('W') == KeyState::Pressed) ? -0.5f : ((Input::GetInstance()->GetKeyState('S') == KeyState::Pressed) ? 0.5f : 0));
@@ -131,8 +131,8 @@ void TestMapScene::Update(float deltaTime) {
 	//entity->SetPosition(entity->GetPosition() + entity->GetComponent<Rigidbody>()->GetVelocity() + normalVector);
 }
 void TestMapScene::Render() {
-	this->block1;
 	Object::Render();
+	//networkClient->Render();
 }
 void TestMapScene::UpdateCamera() {
 	if (Input::GetInstance()->GetKeyState('A') == KeyState::Pressed) {

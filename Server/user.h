@@ -39,6 +39,7 @@ public:
 	float vVelocity[3];
 	unsigned long tick;
 	int inputSequenceNumber;
+	Messenger msg;
 	void OnCollisionEnter(Vector2 normal) override;
 protected:
 

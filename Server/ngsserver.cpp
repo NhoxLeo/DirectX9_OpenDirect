@@ -1,9 +1,11 @@
 #include "Data.h"
 #include "user.h"
 #include "CollisionManager.h"
+#include "MemoryBitStream.h"
 
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <string>
 #include <ctime>
 #include <deque>
@@ -16,6 +18,7 @@ float _deltaTime = 0;
 float _lastTime = 0;
 int FPS = 60;
 const float tickPerFrame = 1.0f / FPS;
+int numbersofPlayers = 0;
 
 // Global variables used in the server program.  These variables are global because they are used
 // by the server thread and initialized in the main thread.  It would be inefficient and
@@ -27,9 +30,7 @@ SOCKET g_sSocket;       // Socket to send and receive on
 // Global variables for client management
 //HANDLE g_hUserSemaphore;    // Allows only a certain number of users to process simultaneously
 User g_Users[MAX_USERS];    // List of all of the users
-UpdateMessage UPMs[MAX_USERS];
-Messenger msgs[MAX_USERS];
-int UPMSizes[MAX_USERS];
+//tilemap
 std::vector<int>* dataMap;
 std::vector<Object*>* staticObjs;
 std::vector<Object*>* dynamicObjs;
@@ -44,10 +45,8 @@ int RecvPacket(char * pBuffer, int length, SOCKADDR_IN * pAddress)
 {
 	// CHEAP TRICK!!  Force the receive event to reset.  Find out why this doesn't usually work!!
 	ResetEvent(g_hRecvEvent);
-
 	// Size of the address structure
 	int iFromLen = sizeof(SOCKADDR_IN);
-
 	// Perform the operation
 	return recvfrom(g_sSocket, pBuffer, length, 0, (LPSOCKADDR)pAddress, &iFromLen);
 }
@@ -79,39 +78,47 @@ HRESULT ProcessUserPacket(User * pUser, const CHAR * pBuffer, DWORD dwSize)
 		bullet->position.y = msg->position[1];
 		bullet->velocity.x = msg->velocity[0];
 		bullet->velocity.y = msg->velocity[1];
-		bullet->size.x = bullet->size.y = 32;
+		bullet->size.x = bullet->size.y = 8;
 		dynamicObjs->push_back(bullet);
 
 		//late frames physics
 		int lateFramesCount = (int)(((int)GetTickCount() - msg->tick) / 16.67f);
-		if (lateFramesCount > 0)
+		//Late Frame Physics
+		while (lateFramesCount <= MAX_LATE_FRAMES && lateFramesCount > 0 && lastFrameObjectsInfo->size() > 0)
 		{
-			//Late Frame Physics
-			while (lateFramesCount < MAX_LATE_FRAMES && lastFrameObjectsInfo->size()>0)
+			int startingFrameIndex = MAX_LATE_FRAMES - lateFramesCount;
+			Vector2 normalVector;
+			normalVector.x = normalVector.y = 0;
+			for (int objIndex = 0; objIndex < lastFrameObjectsInfo->at(startingFrameIndex)->size(); objIndex++)
 			{
-				for (int objVectorIndex = lateFramesCount; objVectorIndex < lastFrameObjectsInfo->size(); objVectorIndex++)
+				if (lastFrameObjectsInfo->at(startingFrameIndex)->at(objIndex)->id != bullet->id);
 				{
-					Vector2 normalVector;
-					normalVector.x = normalVector.y = 0;
-					for (int objIndex = 0; objIndex < lastFrameObjectsInfo->at(objVectorIndex)->size(); objIndex++)
+					Object* obj = lastFrameObjectsInfo->at(startingFrameIndex)->at(objIndex);
+					if (bullet->position.x < obj->position.x + obj->size.x
+						&& bullet->position.x + bullet->size.x > obj->position.x
+						&& bullet->position.y < obj->position.y + obj->size.y
+						&& bullet->position.y + bullet->size.y > obj->position.y)
 					{
-						if (lastFrameObjectsInfo->at(objVectorIndex)->at(objIndex)->id != bullet->id);
+						// collision detected!
+						if (obj->id != msg->id)
 						{
-							Object* obj = lastFrameObjectsInfo->at(objVectorIndex)->at(objIndex);
-							if (bullet->position.x < obj->position.x + obj->size.x
-								&& bullet->position.x + bullet->size.x > obj->position.x
-								&& bullet->position.y < obj->position.y + obj->size.y
-								&& bullet->position.y + bullet->size.y > obj->position.y)
+							Messenger logoffmsg;
+							logoffmsg.action = Action::Dead;
+							logoffmsg.id = obj->id;
+							for (DWORD k = 0; k < MAX_USERS; ++k)
 							{
-								// collision detected!
-								int a = 1;
+								if (g_Users[k].IsConnected())
+								{
+									g_Users[k].SendPacket((CHAR*)&logoffmsg, sizeof(logoffmsg));
+									if (g_Users[k].GetId() == logoffmsg.id) g_Users[k].isActive = false;
+								}
 							}
 						}
 					}
-					bullet->OnCollisionEnter(normalVector);
 				}
-				lateFramesCount++;
 			}
+			bullet->OnCollisionEnter(normalVector);
+			lateFramesCount--;
 		}
 
 		for (DWORD k = 0; k < MAX_USERS; ++k) if ((g_Users[k].IsConnected())) g_Users[k].SendPacket((CHAR*)msg, sizeof(*msg));
@@ -150,9 +157,11 @@ DWORD WINAPI UserProcessor(LPVOID pParam)
 	// Send a message to the user telling them that they have successfully logged on
 	// Build a packet
 
-	LogOnMessage packet;
-	//packet.Header.MsgID = Message::MSG_LOGON;
+	Messenger packet;
 	packet.id = pUser->GetId();
+	packet.action = Action::LogOn;
+	packet.position[0] = pUser->position.x;
+	packet.position[1] = pUser->position.y;
 	// Send the packet
 	int a = pUser->SendPacket((CHAR*)&packet, sizeof(packet));
 	//for (DWORD k = 0; k < MAX_USERS; ++k) if (k != packet.id && g_Users[k].IsConnected()) g_Users[k].SendPacket((CHAR*)&packet, sizeof(packet));
@@ -219,10 +228,11 @@ HRESULT LogOnNewPlayer(const SOCKADDR_IN * pAddr)
 			printf("\nLogged on user %i", i);
 			g_Users[i].objType = ObjectType::Player;
 			g_Users[i].id = i;
-			dynamicObjs->push_back(&g_Users[i]);
+			//dynamicObjs->push_back(&g_Users[i]);
 			return g_Users[i].Connect(pAddr, UserProcessor);
 		}
 	}
+
 	// Couldn't find a place for the player
 	return E_FAIL;
 }
@@ -239,8 +249,27 @@ DWORD WINAPI CommunicationThread(LPVOID pParam)
 		// Get data until the operation would block
 		while (SOCKET_ERROR != (len = RecvPacket(buffer, sizeof(buffer), &address)))
 		{
-			MessageHeader* pMh = (MessageHeader*)buffer;
-			if (pMh->MsgID == Message::MSG_LOGON) LogOnNewPlayer(&address);
+			Messenger msg;
+
+			int act = 0;
+			InputMemoryBitStream is(buffer, static_cast<uint32_t> (len));
+			int op = (int)is.GetRemainingBitCount();
+			while ((int)is.GetRemainingBitCount() >= 4)
+			{
+				is.Read(act, 4);
+			}
+
+
+			//MessageHeader* pMh = (MessageHeader*)buffer;
+			//Messenger* msg = (Messenger*)buffer;
+			std::istringstream iss(buffer);
+			int action;
+			iss >> action;
+			/*	iss >> msg.room >> msg.id >> msg.inputSequenceNumber >> msg.tick >> action >> type >>
+					msg.position[0] >> msg.position[1] >> msg.rotation[0] >> msg.size[0] >> msg.size[1] >> msg.velocity[0] >> msg.velocity[1];*/
+			msg.action = (Action)action;
+			if (msg.action == Action::LogOn || (Action)act == Action::LogOn)
+				LogOnNewPlayer(&address);
 		}
 	}
 	// Success
@@ -286,69 +315,93 @@ void LoadWorld(const wchar_t * _txtPath)
 }
 void Update(float _deltaTime)
 {
-	std::vector<Object*>* thisFrameUserData = new std::vector<Object*>();
 	Vector2 normalVector;
 	normalVector.x = normalVector.y = 0;
+	std::vector<Object*>* thisFrameUserData = new std::vector<Object*>();
 	//Physics
-	for (int i = 0; i < dynamicObjs->size(); ++i)
+	for (int i = 0; i < MAX_USERS; ++i)
 	{
-		if (dynamicObjs->at(i)->objType == ObjectType::Player) thisFrameUserData->push_back(dynamicObjs->at(i));
-		for (int j = 0; j < dynamicObjs->size(); ++j)
+		if (g_Users[i].IsConnected() && g_Users[i].isActive)
 		{
-			if (j != i)
+			thisFrameUserData->push_back(&g_Users[i]);
+			for (int j = 0; j < staticObjs->size(); j++)
 			{
 				float normalX, normalY;
-				int checkAABB = CollisionManager::GetInstance()->CheckSweptAABB(dynamicObjs->at(i), dynamicObjs->at(j), normalX, normalY);
+				int checkAABB = CollisionManager::GetInstance()->CheckSweptAABB((Object*)&g_Users[i], staticObjs->at(j), normalX, normalY);
 				if (checkAABB < 1)
 				{
 					normalVector.x = normalX;
 					normalVector.y = normalY;
 				}
-				else if (checkAABB == 1)
+				else if (checkAABB == 1 && (normalX + normalY > 0))
 				{
-					if (normalX > 0 || normalY > 0)
+					normalVector.x = normalX;
+					normalVector.y = normalY;
+				}
+			}
+			g_Users[i].OnCollisionEnter(normalVector);
+		}
+	}
+	for (int i = 0; i < dynamicObjs->size(); ++i)
+	{
+		bool objecthit = false;
+		for (int j = 0; j < MAX_USERS; ++j)
+		{
+			if (g_Users[j].IsConnected() && g_Users[j].isActive)
+			{
+				if (dynamicObjs->at(i)->objType == ObjectType::Bullet && dynamicObjs->at(i)->id != g_Users[j].id)
+				{
+					Object* bullet = dynamicObjs->at(i);
+					User* obj = &g_Users[j];
+					if (bullet->position.x < obj->position.x + obj->size.x
+						&& bullet->position.x + bullet->size.x > obj->position.x
+						&& bullet->position.y < obj->position.y + obj->size.y
+						&& bullet->position.y + bullet->size.y > obj->position.y)
 					{
-						normalVector.x = normalX;
-						normalVector.y = normalY;
+						objecthit = true;
+						Messenger msg;
+						msg.action = Action::Dead;
+						msg.id = g_Users[j].id;
+						for (DWORD k = 0; k < MAX_USERS; ++k)
+						{
+							if (g_Users[k].IsConnected())
+							{
+								g_Users[k].SendPacket((CHAR*)&msg, sizeof(msg));
+								if (g_Users[k].GetId() == msg.id) g_Users[k].isActive = false;
+							}
+						}
 					}
 				}
 			}
 		}
 		for (int j = 0; j < staticObjs->size(); j++)
 		{
-			float normalX, normalY;
-			int checkAABB = CollisionManager::GetInstance()->CheckSweptAABB(dynamicObjs->at(i), staticObjs->at(j), normalX, normalY);
-			if (checkAABB < 1)
+			Object* bullet = dynamicObjs->at(i);
+			Object* obj = staticObjs->at(j);
+			if (bullet->position.x < obj->position.x + obj->size.x
+				&& bullet->position.x + bullet->size.x > obj->position.x
+				&& bullet->position.y < obj->position.y + obj->size.y
+				&& bullet->position.y + bullet->size.y > obj->position.y)
 			{
-				normalVector.x = normalX;
-				normalVector.y = normalY;
-
-				if (dynamicObjs->at(i)->objType == ObjectType::Bullet)
-				{
-					Messenger msg;
-					msg.action = Action::Destroy;
-					msg.position[0] = staticObjs->at(j)->position.x;
-					msg.position[1] = staticObjs->at(j)->position.y;
-					for (DWORD k = 0; k < MAX_USERS; ++k)if (g_Users[k].IsConnected()) g_Users[k].SendPacket((CHAR*)&msg, sizeof(msgs));
-					staticObjs->erase(staticObjs->begin() + j);
-					break;
-				}
-			}
-			else if (checkAABB == 1)
-			{
-				if (normalX > 0 || normalY > 0)
-				{
-					normalVector.x = normalX;
-					normalVector.y = normalY;
-				}
+				objecthit = true;
+				Messenger msg;
+				msg.action = Action::Destroy;
+				msg.position[0] = staticObjs->at(j)->position.x;
+				msg.position[1] = staticObjs->at(j)->position.y;
+				for (DWORD k = 0; k < MAX_USERS; ++k)if (g_Users[k].IsConnected()) g_Users[k].SendPacket((CHAR*)&msg, sizeof(msg));
+				staticObjs->erase(staticObjs->begin() + j);
+				//objecthit = true;
+				break;
 			}
 		}
-		//if (dynamicObjs->at(i)->objType == ObjectType::Player)
-		dynamicObjs->at(i)->OnCollisionEnter(normalVector);
-		if (dynamicObjs->at(i)->objType == ObjectType::Bullet && normalVector.x + normalVector.y != 0)
+		if (dynamicObjs->at(i)->objType == ObjectType::Bullet)
 		{
-			dynamicObjs->erase(dynamicObjs->begin() + i);
-			break;
+			dynamicObjs->at(i)->OnCollisionEnter(normalVector);
+			if (objecthit)
+			{
+				dynamicObjs->erase(dynamicObjs->begin() + i);
+				break;
+			}
 		}
 	}
 
@@ -360,16 +413,16 @@ void Update(float _deltaTime)
 	{
 		if (g_Users[i].IsConnected())
 		{
-			msgs[i].id = g_Users[i].GetId();
-			msgs[i].action = Action::UpdateObj;
-			msgs[i].type = ObjectType::Player;
-			msgs[i].inputSequenceNumber = g_Users[i].inputSequenceNumber;
-			msgs[i].tick = g_Users[i].tick;
-			msgs[i].position[0] = g_Users[i].position.x;
-			msgs[i].position[1] = g_Users[i].position.y;
-			msgs[i].rotation[0] = g_Users[i].floatRotation *3.14f / 180;
-			msgs[i].size[0] = g_Users[i].size.x;
-			msgs[i].size[1] = g_Users[i].size.y;
+			g_Users[i].msg.id = g_Users[i].GetId();
+			g_Users[i].msg.action = Action::UpdateObj;
+			g_Users[i].msg.type = ObjectType::Player;
+			g_Users[i].msg.inputSequenceNumber = g_Users[i].inputSequenceNumber;
+			g_Users[i].msg.tick = g_Users[i].tick;
+			g_Users[i].msg.position[0] = g_Users[i].position.x;
+			g_Users[i].msg.position[1] = g_Users[i].position.y;
+			g_Users[i].msg.rotation[0] = g_Users[i].floatRotation *3.14f / 180;
+			g_Users[i].msg.size[0] = g_Users[i].size.x;
+			g_Users[i].msg.size[1] = g_Users[i].size.y;
 		}
 	}
 	//Broadcast to all players
@@ -379,13 +432,15 @@ void Update(float _deltaTime)
 		{
 			if (g_Users[i].IsConnected() && g_Users[k].IsConnected())
 			{
-				g_Users[k].SendPacket((CHAR*)&msgs[i], sizeof(msgs[i]));
+				g_Users[k].SendPacket((CHAR*)&g_Users[i].msg, sizeof(g_Users[i].msg));
 			}
 		}
 	}
 }
 int main()
 {
+	//Initiate game world
+	LoadWorld(L"Resources\\Level1.txt");
 	// Start up Winsock
 	{
 		// Stores information about Winsock
@@ -445,12 +500,35 @@ int main()
 	{
 		WORD wBasePort = SERVER_COMM_PORT + 1;
 		for (int i = 0; i < MAX_USERS; ++i)
+		{
 			while (!g_Users[i].Create(i, wBasePort + i)) { wBasePort++; }
+			g_Users->isActive = true;
+			int posnum = i % 4;
+			if (posnum == 0)
+			{
+				g_Users[i].position.x = 16;
+				g_Users[i].position.y = 16;
+			}
+			else if (posnum == 1)
+			{
+				g_Users[i].position.x = 400;
+				g_Users[i].position.y = 16;
+			}
+			else if (posnum == 2)
+			{
+				g_Users[i].position.x = 400;
+				g_Users[i].position.y = 400;
+			}
+			else if (posnum == 3)
+			{
+				g_Users[i].position.x = 16;
+				g_Users[i].position.y = 400;
+			}
+		}
 	}
 	// Tell the user that the server has been initialized
 	printf("Server successfully initialized.  Press any key to exit...");
-	//Initiate game world
-	LoadWorld(L"Resources\\Level1.txt");
+
 	lastFrameObjectsInfo = new std::deque<std::vector<Object*>*>();
 	while (true)
 	{

@@ -31,10 +31,8 @@ public:
 
 public:
 	virtual bool IsCollideWith(Collider* other) = 0;
-
 	virtual bool IsCollideWith(BoxCollider* other) = 0;
 	virtual bool IsCollideWith(CircleCollider* other) = 0;
-
 	virtual bool IsCollideWith(const Vector2& point) = 0;
 
 public:

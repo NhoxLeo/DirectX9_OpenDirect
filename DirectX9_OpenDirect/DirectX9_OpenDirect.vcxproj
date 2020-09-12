@@ -145,16 +145,14 @@
     <ClInclude Include="BoxCollider.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="CircleCollider.h" />
-    <ClInclude Include="Client.h" />
     <ClInclude Include="Collider.h" />
     <ClInclude Include="CollisionManager.h" />
     <ClInclude Include="Data.h" />
     <ClInclude Include="Director.h" />
     <ClInclude Include="Input.h" />
+    <ClInclude Include="MemoryBitStream.h" />
     <ClInclude Include="NetworkClient.h" />
-    <ClInclude Include="NetworkCommunicationData.h" />
     <ClInclude Include="NetworkEntity.h" />
-    <ClInclude Include="Networker.h" />
     <ClInclude Include="Object.h" />
     <ClInclude Include="PhysicsManager.h" />
     <ClInclude Include="Precompiled.h" />
@@ -163,7 +161,6 @@
     <ClInclude Include="ResourceManager.h" />
     <ClInclude Include="Rigidbody.h" />
     <ClInclude Include="Scene.h" />
-    <ClInclude Include="Server.h" />
     <ClInclude Include="Singleton.h" />
     <ClInclude Include="Sprite.h" />
     <ClInclude Include="stdafx.h" />
@@ -178,15 +175,13 @@
     <ClCompile Include="BoxCollider.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="CircleCollider.cpp" />
-    <ClCompile Include="Client.cpp" />
-    <ClCompile Include="main.cpp" />
     <ClCompile Include="Collider.cpp" />
     <ClCompile Include="CollisionManager.cpp" />
     <ClCompile Include="Director.cpp" />
     <ClCompile Include="Input.cpp" />
+    <ClCompile Include="MemoryBitStream.cpp" />
     <ClCompile Include="NetworkClient.cpp" />
     <ClCompile Include="NetworkEntity.cpp" />
-    <ClCompile Include="Networker.cpp" />
     <ClCompile Include="Object.cpp" />
     <ClCompile Include="PhysicsManager.cpp" />
     <ClCompile Include="Precompiled.cpp" />
@@ -194,7 +189,6 @@
     <ClCompile Include="ResourceManager.cpp" />
     <ClCompile Include="Rigidbody.cpp" />
     <ClCompile Include="Scene.cpp" />
-    <ClCompile Include="Server.cpp" />
     <ClCompile Include="Sprite.cpp" />
     <ClCompile Include="TestMapScene.cpp" />
     <ClCompile Include="Texture.cpp" />
@@ -235,9 +229,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="idd_serv.bin" />
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="IPAdress.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

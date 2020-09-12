@@ -3,7 +3,9 @@
 
 Scene::Scene() : m_Camera(nullptr) {
 }
-Scene::~Scene() {
+Scene::~Scene() 
+{
+	Object::~Object();
 }
 
 bool Scene::Initialize() {

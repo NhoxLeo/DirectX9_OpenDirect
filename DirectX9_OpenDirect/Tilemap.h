@@ -10,34 +10,17 @@ public:
 	~Tilemap();
 	void Update(float deltaTime) override;
 	void Render() override;
-
-	void SetCamera(Camera* _cam) { mainCamera = _cam; }
-
-	std::vector<Object*>* GetListObjects() { return ObjectList; }
-	std::vector<Object*>* GetListAreas() { return listAreas; }
-	RECT* GetRegion() { return newRegion; }
-	Vector2 GetMapSize() { return mapSize; }
-
-	std::map<int, RECT*> GetListTileIDs() { return listTileID; };
-	std::vector<int>* GetData() { return data; };
-	std::map<int, Vector2>* GetPositionList() { return positionList; };
-	Renderer* GetTilepRenderer() { return thisRenderer; }
+	void EraseObject(int id);
+	void EraseObject(Vector2 objPosition);
+	vector<int>* dataMap;
+	std::vector<Object*> GetAllObjects() { return objList; };
 private:
-	Vector2 position, worldToScreenPosition, scale;
-	//Tmx::Map *tilemap;
-	std::map<int, Sprite*> tilesetSheet;
-	std::map<int, RECT*> listTileID;
-	std::map<int, Vector2> listRECTPositions;
-	std::vector<Object*> listRenderers;
-	Camera* mainCamera;
-	std::vector<Object*>* ObjectList;
-	std::vector<Object*>* listAreas;
-	Renderer* thisRenderer;
-	RECT* newRegion;
-	std::vector<int>* data;
-	std::map<int, Vector2>* positionList;
-	Vector2 mapSize;
-
 	Sprite* tileSprite;
+	bool initialized = false;
+	std::vector<Object*> objList;
+	/*int mapColumn;
+	int mapRow;
+	int tileColumn;
+	int tileRow;*/
 };
 

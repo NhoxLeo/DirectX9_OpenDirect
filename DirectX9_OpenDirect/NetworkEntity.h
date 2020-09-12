@@ -10,6 +10,6 @@ public:
 
 	int id;
 	Sprite* entity;
-
+	bool isActive;
 };
 

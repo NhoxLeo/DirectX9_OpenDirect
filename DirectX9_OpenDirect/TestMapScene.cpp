@@ -2,16 +2,15 @@
 
 #include "Precompiled.h"
 #include "TestMapScene.h"
+#include <typeinfo>
+#include <fstream>
 
 //bool g_isClosing = false;
 //const long TIMEOUT_INTERVAL = 5000;
 //static int id = 0;
 
 TestMapScene::TestMapScene() {}
-TestMapScene::~TestMapScene()
-{
-
-}
+TestMapScene::~TestMapScene() {}
 
 bool TestMapScene::Initialize() {
 	Scene::Initialize();
@@ -20,6 +19,7 @@ bool TestMapScene::Initialize() {
 	//AddChild(m_Map);
 	GetCamera()->Translate(0, 0);
 	//PhysicsManager*a = PhysicsManager::GetInstance();
+	collisionManager = CollisionManager::GetInstance();
 
 	return true;
 }
@@ -27,67 +27,112 @@ bool TestMapScene::Initialize() {
 void TestMapScene::InitializeUI() {
 	isServer = true;
 	GetCamera()->Translate(0, 0);
+	fireRate = 0.5f;
+	fireTime = 0;
 
-	/*entity = Sprite::Create(L"Resources\\player.png");
-	entity->SetAnchorPoint(0.f, 0.f);
-	entity->SetPosition(0, 0);
-	AddChild(entity);*/
+	//string ip = "127.0.0.1";
 
-	//tilemap = new Tilemap(Sprite::Create(L"Resources\\level1.bmp"), L"Resources\\level1.bmp", L"Resources\\level1.txt", 40, 1, 13, 13, "Level1");
-	//tilemap->SetAnchorPoint(0.f, 0.f);
-	//tilemap->SetPosition(0, 0);
-	//AddChild(tilemap);
-
-	// create a console in addition to the window and bind the standard streams to it
-	// console will be used to provide some instructions on startup and to read in the ip address of a server to connect to
 	FILE *stream;
 	AllocConsole();
 	freopen_s(&stream, "CONIN$", "r+t", stdin);
 	freopen_s(&stream, "CONOUT$", "w+t", stdout);
 	freopen_s(&stream, "CONOUT$", "w+t", stderr);
-	//cout << "Choose 'server' or 'client' by typing it down \n";
-	//string option;
-	//do
-	//{
-	//	cout << "Choose 'server' or 'client' by typing 'server' or 'client' down \n";
-	//	cin >> option;
-	//} while (option != "server" && option != "client");
-	//if (option == "server")
-	//{
-	//	isServer = true;
-	//	server = new Server();
-	//	AddChild(server);
-	//	//ServerInit();
-	//}
-	//else if (option == "client")
-	//{
-	//	isServer = false;
-	//	client = new Client();
-	//	AddChild(client);
-	//	//CLientInit();
-	//}
+	string ip;
+	cout << "Type in the server address \n";
+	cin >> ip;
 
-	networkClient = new NetworkClient();
+	tilemap = new Tilemap(Sprite::Create(L"Resources\\Level1.bmp"), L"Resources\\Level1.bmp", L"Resources\\Level1.txt", 20, 3, 26, 26, "Level1");
+	tilemap->SetAnchorPoint(0.f, 0.f);
+	tilemap->SetPosition(0, 0);
+	AddChild(tilemap);
+
+	networkClient = new NetworkClient(ip);
 	AddChild(networkClient);
+
+	/*entity = Sprite::Create(L"Resources\\tank.png");
+	entity->SetSize(16, 16);
+	entity->SetPosition(100, 20);
+	entity->SetTag("Player");
+	AddChild(entity);
+	entity->AddComponent<Rigidbody>(new Rigidbody());*/
 }
 
 void TestMapScene::Update(float deltaTime) {
 	Scene::Update(deltaTime);
-	UpdateCamera();
-	if (isServer)
+	//UpdateCamera();
+
+	/*if (Input::GetInstance()->GetKeyState('Q') == KeyState::Pressed && fireTime > fireRate)
 	{
-		//ServerUpdate();
-		//server->Update(deltaTime);
+		fireTime = 0;
+		Sprite* bullet = Sprite::Create(L"Resources\\Tank\\testbullet.bmp");
+		bullet->SetTag("Bullet");
+		bullet->AddComponent<Rigidbody>(new Rigidbody());
+		bullet->SetPosition(entity->GetPosition().x, entity->GetPosition().y);
+		bullet->GetComponent<Rigidbody>()->SetVelocity(entity->GetComponent<Rigidbody>()->GetVelocity().x, entity->GetComponent<Rigidbody>()->GetVelocity().y);
+		AddChild(bullet);
 	}
-	else
-	{
-		//ClientUpdate();
-		//client->Update(deltaTime);
-	}
-	networkClient->Update(deltaTime);
+	if (fireTime <= fireRate) fireTime += deltaTime;*/
+	//entity->GetComponent<Rigidbody>()->SetVelocity(
+	//	(Input::GetInstance()->GetKeyState('A') == KeyState::Pressed) ? -0.5f : ((Input::GetInstance()->GetKeyState('D') == KeyState::Pressed) ? 0.5f : 0)
+	//	, (Input::GetInstance()->GetKeyState('W') == KeyState::Pressed) ? -0.5f : ((Input::GetInstance()->GetKeyState('S') == KeyState::Pressed) ? 0.5f : 0));
+	//if (entity->GetComponent<Rigidbody>()->GetVelocity().x != 0 || entity->GetComponent<Rigidbody>()->GetVelocity().y != 0) entity->SetRotation(180 * 3.14f / 180);
+	//Vector2 normalVector = Vector2(0, 0);
+	//float normalX, normalY;
+	//for (size_t i = 0; i < m_Children.size(); i++)
+	//{
+	//	if (m_Children.at(i)->GetTag() == "Player")
+	//	{
+	//		for (size_t j = 0; j < m_Children.size(); j++)
+	//		{
+	//			if (j != i)
+	//			{
+	//				int checkAABB = collisionManager->CheckSweptAABB(m_Children.at(i), m_Children.at(j), normalX, normalY);
+	//				if (checkAABB < 1)
+	//					normalVector = Vector2(normalX, normalY);
+	//				else if (checkAABB == 1)
+	//					if (normalX > 0 || normalY > 0) normalVector = Vector2(normalX, normalY);
+	//			}
+	//		}
+	//	}
+	//	else if (m_Children.at(i)->GetTag() == "Bullet")
+	//	{
+	//		for (size_t j = 0; j < m_Children.size(); j++)
+	//		{
+	//			if (j != i && m_Children.at(j)->GetTag() != "Player")
+	//			{
+	//				Object* bullet = m_Children.at(i);
+	//				Object* obj = m_Children.at(j);
+	//				int checkAABB = collisionManager->CheckSweptAABB(bullet, m_Children.at(j), normalX, normalY);
+	//				if (checkAABB < 1)
+	//				{
+	//					tilemap->EraseObject(obj->GetPosition());
+	//					m_Children.erase(m_Children.begin() + i);
+	//					m_Children.erase(m_Children.begin() + j);
+	//					normalVector = Vector2(normalX, normalY);
+	//					break;
+	//				}
+	//				else if (checkAABB == 1) if (normalX > 0 || normalY > 0) normalVector = Vector2(normalX, normalY);
+	//				//if (bullet->GetPosition().x < obj->GetPosition().x + obj->GetSize().x
+	//				//	&& bullet->GetPosition().x + bullet->GetSize().x > obj->GetPosition().x
+	//				//	&& bullet->GetPosition().y < obj->GetPosition().y + obj->GetSize().y
+	//				//	&& bullet->GetPosition().y + bullet->GetSize().y > obj->GetPosition().y)
+	//				//{
+	//				//	//tilemap->GetAllObjects().erase(tilemap->GetAllObjects().begin() + j);
+	//				//	//tilemap->EraseObject(std::stoi(obj->GetName()));
+	//				//	tilemap->EraseObject(obj->GetPosition());
+	//				//	m_Children.erase(m_Children.begin() + i);
+	//				//	m_Children.erase(m_Children.begin() + j);
+	//				//	break;
+	//				//}
+	//			}
+	//		}
+	//	}
+	//}
+	//entity->SetPosition(entity->GetPosition() + entity->GetComponent<Rigidbody>()->GetVelocity() + normalVector);
 }
 void TestMapScene::Render() {
 	Object::Render();
+	//networkClient->Render();
 }
 void TestMapScene::UpdateCamera() {
 	if (Input::GetInstance()->GetKeyState('A') == KeyState::Pressed) {

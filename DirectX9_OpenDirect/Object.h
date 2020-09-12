@@ -4,13 +4,11 @@
 class Collider;
 class Object {
 protected:
-	typedef std::vector<Object*> ObjectList;
-
 	bool m_Visible;
 	bool m_TransformUpdate;
 
 	Object* m_Parent;
-	ObjectList m_Children;
+	std::vector<Object*> m_Children;
 
 	Vector2 m_Size;
 	Vector2 m_Position;
@@ -25,6 +23,7 @@ protected:
 	Matrix m_Matrix;
 
 	std::string m_Name;
+	std::string m_Tag;
 
 public:
 	static Object* Create();
@@ -41,15 +40,13 @@ public:
 
 	virtual void OnCollision(Collider* collider) {};
 
-public:
 	void AddChild(Object* obj);
 	void RemoveChild(Object* obj);
+	std::vector<Object*> GetChildren() { return m_Children; }
 
-public:
 	void CalculateAnchorPointInPoint();
 	void CalculateMatrix();
 
-public:
 	Object* GetParent() {
 		return m_Parent;
 	}
@@ -153,12 +150,17 @@ public:
 		m_Name = name;
 	}
 
+	virtual const std::string& GetTag() const {
+		return m_Tag;
+	}
+	virtual void SetTag(const std::string& tag) {
+		m_Tag = tag;
+	}
+
 	virtual D3DXMATRIX GetMatrix() {
 		return m_Matrix;
 	}
 
-
-public:
 	virtual void Translate(Vector2 v) {
 		Translate(v.x, v.y);
 	}
@@ -168,7 +170,6 @@ public:
 
 		m_TransformUpdate = true;
 	}
-
 	virtual void Scale(Vector2 sv) {
 		Scale(sv.x, sv.y);
 	}
@@ -178,10 +179,25 @@ public:
 
 		m_TransformUpdate = true;
 	}
-
 	virtual void Rotate(float r) {
 		m_Rotation += r;
 		m_TransformUpdate = true;
+	}
+
+	template<class ComponentType>	ComponentType* GetComponent() {
+		for (size_t i = 0; i < m_Children.size(); i++)
+		{
+			if (ComponentType* compo = dynamic_cast<ComponentType*>(m_Children.at(i))) return compo;
+		}
+		return nullptr;
+	}
+	template<class ComponentType>	void AddComponent(ComponentType *_component) {
+		for (size_t i = 0; i < m_Children.size(); i++)
+		{
+			if (ComponentType* compo = dynamic_cast<ComponentType*>(m_Children.at(i))) return;
+		}
+		//m_Children->push_back(_component);
+		AddChild(_component);
 	}
 
 public:

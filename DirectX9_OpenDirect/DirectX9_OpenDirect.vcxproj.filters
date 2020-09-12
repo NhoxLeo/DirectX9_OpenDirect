@@ -101,12 +101,6 @@
     <ClInclude Include="Rigidbody.h">
       <Filter>Framework\Header Files\Components</Filter>
     </ClInclude>
-    <ClInclude Include="Networker.h">
-      <Filter>Framework\Header Files\Network</Filter>
-    </ClInclude>
-    <ClInclude Include="NetworkCommunicationData.h">
-      <Filter>Framework\Header Files\Network</Filter>
-    </ClInclude>
     <ClInclude Include="resource.h">
       <Filter>Framework\Header Files\Others</Filter>
     </ClInclude>
@@ -115,12 +109,6 @@
     </ClInclude>
     <ClInclude Include="Precompiled.h">
       <Filter>Framework\Header Files\Others</Filter>
-    </ClInclude>
-    <ClInclude Include="Client.h">
-      <Filter>Framework\Header Files\Network</Filter>
-    </ClInclude>
-    <ClInclude Include="Server.h">
-      <Filter>Framework\Header Files\Network</Filter>
     </ClInclude>
     <ClInclude Include="NetworkEntity.h">
       <Filter>Framework\Header Files\Network</Filter>
@@ -132,6 +120,9 @@
       <Filter>Framework\Header Files\Network</Filter>
     </ClInclude>
     <ClInclude Include="Tilemap.h">
+      <Filter>Framework\Header Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="MemoryBitStream.h">
       <Filter>Framework\Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -193,28 +184,17 @@
     <ClCompile Include="Rigidbody.cpp">
       <Filter>Framework\Source Files\Components</Filter>
     </ClCompile>
-    <ClCompile Include="Networker.cpp">
-      <Filter>Framework\Source Files\Network</Filter>
-    </ClCompile>
-    <ClCompile Include="main.cpp">
-      <Filter>Framework</Filter>
-    </ClCompile>
-    <ClCompile Include="WinMain.cpp">
-      <Filter>Framework\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Client.cpp">
-      <Filter>Framework\Source Files\Network</Filter>
-    </ClCompile>
-    <ClCompile Include="Server.cpp">
-      <Filter>Framework\Source Files\Network</Filter>
-    </ClCompile>
     <ClCompile Include="NetworkEntity.cpp">
       <Filter>Framework\Source Files\Network</Filter>
     </ClCompile>
     <ClCompile Include="NetworkClient.cpp">
       <Filter>Framework\Source Files\Network</Filter>
     </ClCompile>
+    <ClCompile Include="WinMain.cpp" />
     <ClCompile Include="Tilemap.cpp">
+      <Filter>Framework\Source Files\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="MemoryBitStream.cpp">
       <Filter>Framework\Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -312,8 +292,5 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="idd_serv.bin" />
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="IPAdress.rc" />
   </ItemGroup>
 </Project>

@@ -1,28 +1,30 @@
-#pragma once
-
+﻿#pragma once
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 #include <winsock2.h>
 #include <stdio.h>
 #include <conio.h>
-#include "user.h"
-
 // Settings that define how the server operates
 #define WINSOCK_VERSION     MAKEWORD(2,2)
-#define SERVER_COMM_PORT    27192
+//#define SERVER_COMM_PORT    27192
+#define SERVER_COMM_PORT    8888
+//#define SERVER_COMM_PORT    3389
 #define MAX_PACKET_SIZE     1024
 #define MAX_USERS           16
+#define MAX_LATE_FRAMES		20
 
-// Global variables used in the server program.  These variables are global because they are used
-// by the server thread and initialized in the main thread.  It would be inefficient and
-// duplicative to find an object-oriented workaround.
-HANDLE g_hExitEvent;    // Set when the server shuts down
-HANDLE g_hCommThread;   // Thread processing object
-WSAEVENT g_hRecvEvent;  // Event triggered when data is received
-SOCKET g_sSocket;       // Socket to send and receive on
-
-// Global variables for client management
-//HANDLE g_hUserSemaphore;    // Allows only a certain number of users to process simultaneously
-User g_Users[MAX_USERS];    // List of all of the users
+namespace Define {
+	const int NBit_PacketType = 4; // type [0, 8]
+	const int NBit_EntityID = 10; // entity ID [0, 1023]
+	const int NBit_Position = 14; // X * 10 hoặc Y * 10 [0, 16383]
+	const int NBit_PacketID = 20; // thuộc loại ID++ theo thời gian [0, 1048576]
+	const int NBit_Time = 32; // thời gian TickCount [-2147483648, 2147483647]
+	const int NBit_PlayerID = 2; // ID người chơi [0, 3]
+	const int NBit_RoomID = 2; // RoomID [0, 3]
+	const int NBit_EntityHP = 2; // máu [0, 3]
+	const int NBit_Direction = 3; // hướng di chuyển [0, 4]
+	const int NBit_NPlayersInRoom = 3; // số lượng người chơi trong phòng [0, 4]
+	//const int NBit_Position = 15;
+}
 
 enum Message
 {
@@ -32,57 +34,77 @@ enum Message
 	MSG_CONFIRMLOGON,
 	MSG_PLAYERLOGGEDON,
 	MSG_PLAYERLOGGEDOFF,
+	MSG_PLAYERSHOOT,
+	MSG_UPDATEOBJECT
 };
-
 struct MessageHeader
 {
 	Message MsgID;
 };
-
 struct LogOnMessage
 {
 	MessageHeader   Header;
-
-	LogOnMessage() { Header.MsgID = MSG_LOGON; }
+	int id;
+	float size[2];
+	LogOnMessage() { Header.MsgID = Message::MSG_LOGON; size[0] = size[1] = 0; }
 };
-
 struct LogOffMessage
 {
-	MessageHeader   Header;
-
-	LogOffMessage() { Header.MsgID = MSG_LOGOFF; }
+	MessageHeader Header;
+	int id;
+	LogOffMessage() { Header.MsgID = Message::MSG_LOGOFF; }
 };
-
-struct UpdatePlayerMessage
+struct UpdateMessage
 {
 	MessageHeader   Header;
-	DWORD           dwPlayerID;
-	FLOAT           fVelocity[3];       // Expressed in meters / second
-	FLOAT           fPosition[3];
-	DWORD           dwState;
-	FLOAT           fYaw;
-
-	UpdatePlayerMessage() { Header.MsgID = MSG_UPDATEPLAYER; }
+	DWORD           id;
+	float			tick;
+	float           fVelocity[3];
+	//float           fPosition[3];
+	float           fRotation[3];
+	//float           fSize[3];
+	bool			shoot;
+	UpdateMessage() { Header.MsgID = MSG_UPDATEPLAYER; }
 };
-
-struct ConfirmLogOnMessage
+enum Action
 {
-	MessageHeader   Header;
-
-	ConfirmLogOnMessage() { Header.MsgID = MSG_CONFIRMLOGON; }
+	None,
+	LogOn,
+	LogOff,
+	Move,
+	Shoot,
+	Dead,
+	Create,
+	UpdateObj,
+	Destroy,
+	Ping
 };
-
-struct PlayerLoggedOnMessage
+enum ObjectType
 {
-	MessageHeader   Header;
-	DWORD           dwPlayerID;
-
-	PlayerLoggedOnMessage() { Header.MsgID = MSG_PLAYERLOGGEDON; }
+	SimpleObject,
+	Player,
+	Bullet,
+	Brick,
 };
-struct PlayerLoggedOff
+struct Messenger
 {
-	MessageHeader   Header;
-	DWORD           dwPlayerID;
-
-	PlayerLoggedOff() { Header.MsgID = MSG_PLAYERLOGGEDOFF; }
+	int room;
+	int id;
+	int inputSequenceNumber;
+	unsigned long tick;
+	Action action;
+	ObjectType type;
+	float position[2], rotation[2], size[2], velocity[2];
+	Messenger()
+	{
+		room = 0;
+		tick = 0;
+		inputSequenceNumber = 0;
+		type = SimpleObject;
+		id = 0;
+		position[0] = position[1] = 0;
+		rotation[0] = rotation[1] = 0;
+		velocity[0] = velocity[1] = 0;
+		size[0] = size[1] = 0;
+	}
 };

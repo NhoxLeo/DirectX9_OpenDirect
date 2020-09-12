@@ -14,7 +14,7 @@ Rigidbody::~Rigidbody()
 
 void Rigidbody::Update(float deltatime)
 {
-	this->GetParent()->SetPosition(this->GetParent()->GetPosition() + *velocity*deltatime);
+	this->GetParent()->SetPosition(this->GetParent()->GetPosition() + *velocity);
 }
 
 Vector2 Rigidbody::GetVelocity()

@@ -17,6 +17,7 @@ bool Director::Initialize()
 }
 bool Director::Release()
 {
+	m_CurrentScene->~Scene();
 	return true;
 }
 

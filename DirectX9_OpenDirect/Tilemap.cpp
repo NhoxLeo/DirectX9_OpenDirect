@@ -52,7 +52,7 @@ Tilemap::Tilemap(Sprite * sprite, const wchar_t * _imagePath, const wchar_t * _t
 				else if (_index == 13)obj->SetTag("Wall");
 				else if (_index == 49 || _index == 50 || _index == 53 || _index == 54) obj->SetTag("Eagle");
 				AddChild(obj);
-				//objList.push_back(obj);
+				objList.push_back(obj);
 			}
 		}
 	}

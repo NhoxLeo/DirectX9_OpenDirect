@@ -32,35 +32,38 @@ void TestMapScene::InitializeUI() {
 
 	//string ip = "127.0.0.1";
 
-	FILE *stream;
+	/*FILE *stream;
 	AllocConsole();
 	freopen_s(&stream, "CONIN$", "r+t", stdin);
 	freopen_s(&stream, "CONOUT$", "w+t", stdout);
 	freopen_s(&stream, "CONOUT$", "w+t", stderr);
 	string ip;
 	cout << "Type in the server address \n";
-	cin >> ip;
+	cin >> ip;*/
 
 	tilemap = new Tilemap(Sprite::Create(L"Resources\\Level1.bmp"), L"Resources\\Level1.bmp", L"Resources\\Level1.txt", 20, 3, 26, 26, "Level1");
 	tilemap->SetAnchorPoint(0.f, 0.f);
 	tilemap->SetPosition(0, 0);
 	AddChild(tilemap);
+	/*for (size_t i = 0; i < tilemap->GetAllObjects().size(); i++)
+	{
+		AddChild(tilemap->GetAllObjects().at(i));
+	}*/
 
-	networkClient = new NetworkClient(ip);
-	AddChild(networkClient);
+	/*networkClient = new NetworkClient(ip);
+	AddChild(networkClient);*/
 
-	/*entity = Sprite::Create(L"Resources\\tank.png");
+	entity = Sprite::Create(L"Resources\\tank.png");
 	entity->SetSize(16, 16);
 	entity->SetPosition(100, 20);
 	entity->SetTag("Player");
 	AddChild(entity);
-	entity->AddComponent<Rigidbody>(new Rigidbody());*/
+	entity->AddComponent<Rigidbody>(new Rigidbody());
 }
 
 void TestMapScene::Update(float deltaTime) {
 	Scene::Update(deltaTime);
 	//UpdateCamera();
-
 	/*if (Input::GetInstance()->GetKeyState('Q') == KeyState::Pressed && fireTime > fireRate)
 	{
 		fireTime = 0;
@@ -72,63 +75,63 @@ void TestMapScene::Update(float deltaTime) {
 		AddChild(bullet);
 	}
 	if (fireTime <= fireRate) fireTime += deltaTime;*/
-	//entity->GetComponent<Rigidbody>()->SetVelocity(
-	//	(Input::GetInstance()->GetKeyState('A') == KeyState::Pressed) ? -0.5f : ((Input::GetInstance()->GetKeyState('D') == KeyState::Pressed) ? 0.5f : 0)
-	//	, (Input::GetInstance()->GetKeyState('W') == KeyState::Pressed) ? -0.5f : ((Input::GetInstance()->GetKeyState('S') == KeyState::Pressed) ? 0.5f : 0));
-	//if (entity->GetComponent<Rigidbody>()->GetVelocity().x != 0 || entity->GetComponent<Rigidbody>()->GetVelocity().y != 0) entity->SetRotation(180 * 3.14f / 180);
-	//Vector2 normalVector = Vector2(0, 0);
-	//float normalX, normalY;
-	//for (size_t i = 0; i < m_Children.size(); i++)
-	//{
-	//	if (m_Children.at(i)->GetTag() == "Player")
-	//	{
-	//		for (size_t j = 0; j < m_Children.size(); j++)
-	//		{
-	//			if (j != i)
-	//			{
-	//				int checkAABB = collisionManager->CheckSweptAABB(m_Children.at(i), m_Children.at(j), normalX, normalY);
-	//				if (checkAABB < 1)
-	//					normalVector = Vector2(normalX, normalY);
-	//				else if (checkAABB == 1)
-	//					if (normalX > 0 || normalY > 0) normalVector = Vector2(normalX, normalY);
-	//			}
-	//		}
-	//	}
-	//	else if (m_Children.at(i)->GetTag() == "Bullet")
-	//	{
-	//		for (size_t j = 0; j < m_Children.size(); j++)
-	//		{
-	//			if (j != i && m_Children.at(j)->GetTag() != "Player")
-	//			{
-	//				Object* bullet = m_Children.at(i);
-	//				Object* obj = m_Children.at(j);
-	//				int checkAABB = collisionManager->CheckSweptAABB(bullet, m_Children.at(j), normalX, normalY);
-	//				if (checkAABB < 1)
-	//				{
-	//					tilemap->EraseObject(obj->GetPosition());
-	//					m_Children.erase(m_Children.begin() + i);
-	//					m_Children.erase(m_Children.begin() + j);
-	//					normalVector = Vector2(normalX, normalY);
-	//					break;
-	//				}
-	//				else if (checkAABB == 1) if (normalX > 0 || normalY > 0) normalVector = Vector2(normalX, normalY);
-	//				//if (bullet->GetPosition().x < obj->GetPosition().x + obj->GetSize().x
-	//				//	&& bullet->GetPosition().x + bullet->GetSize().x > obj->GetPosition().x
-	//				//	&& bullet->GetPosition().y < obj->GetPosition().y + obj->GetSize().y
-	//				//	&& bullet->GetPosition().y + bullet->GetSize().y > obj->GetPosition().y)
-	//				//{
-	//				//	//tilemap->GetAllObjects().erase(tilemap->GetAllObjects().begin() + j);
-	//				//	//tilemap->EraseObject(std::stoi(obj->GetName()));
-	//				//	tilemap->EraseObject(obj->GetPosition());
-	//				//	m_Children.erase(m_Children.begin() + i);
-	//				//	m_Children.erase(m_Children.begin() + j);
-	//				//	break;
-	//				//}
-	//			}
-	//		}
-	//	}
-	//}
-	//entity->SetPosition(entity->GetPosition() + entity->GetComponent<Rigidbody>()->GetVelocity() + normalVector);
+	entity->GetComponent<Rigidbody>()->SetVelocity(
+		(Input::GetInstance()->GetKeyState('A') == KeyState::Pressed) ? -0.5f : ((Input::GetInstance()->GetKeyState('D') == KeyState::Pressed) ? 0.5f : 0)
+		, (Input::GetInstance()->GetKeyState('W') == KeyState::Pressed) ? -0.5f : ((Input::GetInstance()->GetKeyState('S') == KeyState::Pressed) ? 0.5f : 0));
+	if (entity->GetComponent<Rigidbody>()->GetVelocity().x != 0 || entity->GetComponent<Rigidbody>()->GetVelocity().y != 0) entity->SetRotation(180 * 3.14f / 180);
+	Vector2 normalVector = Vector2(0, 0);
+	float normalX, normalY;
+	for (size_t i = 0; i < m_Children.size(); i++)
+	{
+		if (m_Children.at(i)->GetTag() == "Player")
+		{
+			for (size_t j = 0; j < m_Children.size(); j++)
+			{
+				if (j != i)
+				{
+					int checkAABB = collisionManager->CheckSweptAABB(m_Children.at(i), m_Children.at(j), normalX, normalY);
+					if (checkAABB < 1)
+						normalVector = Vector2(normalX, normalY);
+					else if (checkAABB == 1)
+						if (normalX > 0 || normalY > 0) normalVector = Vector2(normalX, normalY);
+				}
+			}
+		}
+		//else if (m_Children.at(i)->GetTag() == "Bullet")
+		//{
+		//	for (size_t j = 0; j < m_Children.size(); j++)
+		//	{
+		//		if (j != i && m_Children.at(j)->GetTag() != "Player")
+		//		{
+		//			Object* bullet = m_Children.at(i);
+		//			Object* obj = m_Children.at(j);
+		//			int checkAABB = collisionManager->CheckSweptAABB(bullet, m_Children.at(j), normalX, normalY);
+		//			if (checkAABB < 1)
+		//			{
+		//				tilemap->EraseObject(obj->GetPosition());
+		//				m_Children.erase(m_Children.begin() + i);
+		//				m_Children.erase(m_Children.begin() + j);
+		//				normalVector = Vector2(normalX, normalY);
+		//				break;
+		//			}
+		//			else if (checkAABB == 1) if (normalX > 0 || normalY > 0) normalVector = Vector2(normalX, normalY);
+		//			//if (bullet->GetPosition().x < obj->GetPosition().x + obj->GetSize().x
+		//			//	&& bullet->GetPosition().x + bullet->GetSize().x > obj->GetPosition().x
+		//			//	&& bullet->GetPosition().y < obj->GetPosition().y + obj->GetSize().y
+		//			//	&& bullet->GetPosition().y + bullet->GetSize().y > obj->GetPosition().y)
+		//			//{
+		//			//	//tilemap->GetAllObjects().erase(tilemap->GetAllObjects().begin() + j);
+		//			//	//tilemap->EraseObject(std::stoi(obj->GetName()));
+		//			//	tilemap->EraseObject(obj->GetPosition());
+		//			//	m_Children.erase(m_Children.begin() + i);
+		//			//	m_Children.erase(m_Children.begin() + j);
+		//			//	break;
+		//			//}
+		//		}
+		//	}
+		//}
+	}
+	entity->SetPosition(entity->GetPosition() + entity->GetComponent<Rigidbody>()->GetVelocity() + normalVector);
 }
 void TestMapScene::Render() {
 	Object::Render();

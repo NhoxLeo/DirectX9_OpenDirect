@@ -53,12 +53,16 @@ void TestMapScene::InitializeUI() {
 	/*networkClient = new NetworkClient(ip);
 	AddChild(networkClient);*/
 
-	entity = Sprite::Create(L"Resources\\tank.png");
+	entity = Object::Create();
 	entity->SetSize(16, 16);
 	entity->SetPosition(100, 20);
+	
+	
 	entity->SetTag("Player");
 	AddChild(entity);
 	entity->AddComponent<Rigidbody>(new Rigidbody());
+	entity->AddComponent<AnimationSprite>(new AnimationSprite(L"Resources\\Tank1Up.png", 1, 2, 1));
+	
 }
 
 void TestMapScene::Update(float deltaTime) {
@@ -75,10 +79,34 @@ void TestMapScene::Update(float deltaTime) {
 		AddChild(bullet);
 	}
 	if (fireTime <= fireRate) fireTime += deltaTime;*/
-	entity->GetComponent<Rigidbody>()->SetVelocity(
-		(Input::GetInstance()->GetKeyState('A') == KeyState::Pressed) ? -0.5f : ((Input::GetInstance()->GetKeyState('D') == KeyState::Pressed) ? 0.5f : 0)
-		, (Input::GetInstance()->GetKeyState('W') == KeyState::Pressed) ? -0.5f : ((Input::GetInstance()->GetKeyState('S') == KeyState::Pressed) ? 0.5f : 0));
-	if (entity->GetComponent<Rigidbody>()->GetVelocity().x != 0 || entity->GetComponent<Rigidbody>()->GetVelocity().y != 0) entity->SetRotation(180 * 3.14f / 180);
+
+
+	if (Input::GetInstance()->GetKeyState('A') == KeyState::Pressed)
+	{
+		entity->GetComponent<Rigidbody>()->SetVelocity(-0.5f, 0);
+		entity->SetRotation(-90 * 3.14f / 180);
+	}
+	else if (Input::GetInstance()->GetKeyState('D') == KeyState::Pressed)
+	{
+		entity->GetComponent<Rigidbody>()->SetVelocity(0.5f, 0);
+		entity->SetRotation(90 * 3.14f / 180);
+	}
+	else if (Input::GetInstance()->GetKeyState('W') == KeyState::Pressed)
+	{
+		entity->GetComponent<Rigidbody>()->SetVelocity(0, -0.5f);
+		entity->SetRotation(0);
+	}
+	else if (Input::GetInstance()->GetKeyState('S') == KeyState::Pressed)
+	{
+		entity->GetComponent<Rigidbody>()->SetVelocity(0, 0.5f);
+		entity->SetRotation(180 * 3.14f / 180); 
+	}
+	else
+	{
+		entity->GetComponent<Rigidbody>()->SetVelocity(0, 0);
+	}
+	
+	
 	Vector2 normalVector = Vector2(0, 0);
 	float normalX, normalY;
 	for (size_t i = 0; i < m_Children.size(); i++)

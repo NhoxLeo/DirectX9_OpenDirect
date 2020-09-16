@@ -34,6 +34,7 @@ AnimationSprite::AnimationSprite(std::wstring filePath, int rows, int collums,fl
 	InitializeWithAnimation(speed);
 	int frameWidth = (spriteSheet->GetSourceRect().right - spriteSheet->GetSourceRect().left) / collums;
 	int frameHeight = (spriteSheet->GetSourceRect().bottom - spriteSheet->GetSourceRect().top) / rows;
+	
 	for (int i = 0; i < rows; i++)
 	{
 		for (int j = 0; j < collums; j++)
@@ -46,6 +47,7 @@ AnimationSprite::AnimationSprite(std::wstring filePath, int rows, int collums,fl
 			//animationFrameRects.emplace_back(rc);
 
 			auto spriteFrame = Sprite::Create(filePath);
+			spriteFrame->SetAnchorPoint(0.285f, 0.287f);
 			spriteFrame->SetParent(this);
 			spriteFrame->SetSourceRect(*rc);
 			m_SpriteList.push_back(spriteFrame);

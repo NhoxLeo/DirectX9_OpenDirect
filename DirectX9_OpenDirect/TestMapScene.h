@@ -13,8 +13,8 @@ private:
 	//Map* m_Map;
 	Object* m_UI;
 	bool isServer;
-	Sprite *entity, *block1, *block2;
-
+	Sprite  *block1, *block2;
+	Object* entity;
 	NetworkClient* networkClient;
 	CollisionManager* collisionManager;
 	Tilemap* tilemap;

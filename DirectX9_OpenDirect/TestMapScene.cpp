@@ -55,9 +55,7 @@ void TestMapScene::InitializeUI() {
 
 	entity = Object::Create();
 	entity->SetSize(16, 16);
-	entity->SetPosition(100, 20);
-	
-	
+	entity->SetPosition(0, 0);
 	entity->SetTag("Player");
 	AddChild(entity);
 	entity->AddComponent<Rigidbody>(new Rigidbody());

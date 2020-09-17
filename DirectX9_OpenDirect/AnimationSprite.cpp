@@ -47,7 +47,7 @@ AnimationSprite::AnimationSprite(std::wstring filePath, int rows, int collums,fl
 			//animationFrameRects.emplace_back(rc);
 
 			auto spriteFrame = Sprite::Create(filePath);
-			spriteFrame->SetAnchorPoint(0.285f, 0.287f);
+			spriteFrame->SetAnchorPoint(0.25f, 0.6f);
 			spriteFrame->SetParent(this);
 			spriteFrame->SetSourceRect(*rc);
 			m_SpriteList.push_back(spriteFrame);
